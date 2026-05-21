@@ -13,6 +13,10 @@ class FCM_Admin {
         add_action( 'save_post', array( $this, 'save_conference_meta_boxes' ) );
         add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
         add_action( 'admin_init', array( $this, 'register_settings' ) );
+        
+        // Submission Meta Boxes
+        add_action( 'add_meta_boxes', array( $this, 'add_submission_meta_boxes' ) );
+        add_action( 'save_post', array( $this, 'save_submission_meta_boxes' ) );
     }
 
     public function add_settings_page() {
@@ -183,6 +187,67 @@ class FCM_Admin {
             if ( isset( $_POST[$fee] ) ) {
                 update_post_meta( $post_id, $fee, sanitize_text_field( $_POST[$fee] ) );
             }
+        }
+    }
+
+    public function add_submission_meta_boxes() {
+        $screens = array( 'conference_abstract', 'conference_paper' );
+        foreach ( $screens as $screen ) {
+            add_meta_box(
+                'fcm_submission_status',
+                __( 'Submission Status & File', 'conference-manager' ),
+                array( $this, 'render_submission_meta_box' ),
+                $screen,
+                'side',
+                'default'
+            );
+        }
+    }
+
+    public function render_submission_meta_box( $post ) {
+        wp_nonce_field( 'fcm_save_submission_data', 'fcm_submission_meta_box_nonce' );
+
+        $status = get_post_meta( $post->ID, 'review_status', true );
+        if ( empty( $status ) ) $status = 'Pending Review';
+        
+        $file_id = get_post_meta( $post->ID, 'file_id', true );
+        $conference_id = get_post_meta( $post->ID, 'conference_id', true );
+
+        echo '<p><strong>Conference:</strong> ' . ( $conference_id ? get_the_title( $conference_id ) : 'N/A' ) . '</p>';
+
+        if ( $file_id ) {
+            $file_url = wp_get_attachment_url( $file_id );
+            echo '<p><a href="' . esc_url( $file_url ) . '" target="_blank" class="button button-primary">View/Download Document</a></p>';
+        } else {
+            echo '<p>No document attached.</p>';
+        }
+
+        ?>
+        <p>
+            <label for="fcm_review_status"><strong><?php _e( 'Review Status', 'conference-manager' ); ?></strong></label>
+            <br/>
+            <select name="fcm_review_status" id="fcm_review_status" style="width:100%; margin-top:5px;">
+                <option value="Pending Review" <?php selected( $status, 'Pending Review' ); ?>>Pending Review</option>
+                <option value="Accepted" <?php selected( $status, 'Accepted' ); ?>>Accepted</option>
+                <option value="Rejected" <?php selected( $status, 'Rejected' ); ?>>Rejected</option>
+            </select>
+        </p>
+        <?php
+    }
+
+    public function save_submission_meta_boxes( $post_id ) {
+        if ( ! isset( $_POST['fcm_submission_meta_box_nonce'] ) ) return;
+        if ( ! wp_verify_nonce( $_POST['fcm_submission_meta_box_nonce'], 'fcm_save_submission_data' ) ) return;
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+
+        if ( isset( $_POST['post_type'] ) && in_array( $_POST['post_type'], array( 'conference_abstract', 'conference_paper' ) ) ) {
+            if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+        } else {
+            return;
+        }
+
+        if ( isset( $_POST['fcm_review_status'] ) ) {
+            update_post_meta( $post_id, 'review_status', sanitize_text_field( $_POST['fcm_review_status'] ) );
         }
     }
 }
