@@ -11,6 +11,63 @@ class FCM_Admin {
     public function __construct() {
         add_action( 'add_meta_boxes', array( $this, 'add_conference_meta_boxes' ) );
         add_action( 'save_post', array( $this, 'save_conference_meta_boxes' ) );
+        add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
+        add_action( 'admin_init', array( $this, 'register_settings' ) );
+    }
+
+    public function add_settings_page() {
+        add_submenu_page(
+            'edit.php?post_type=conference',
+            __( 'Settings', 'conference-manager' ),
+            __( 'Settings', 'conference-manager' ),
+            'manage_options',
+            'fcm-settings',
+            array( $this, 'settings_page_html' )
+        );
+    }
+
+    public function register_settings() {
+        register_setting( 'fcm_settings_group', 'fcm_credo_public_key' );
+        register_setting( 'fcm_settings_group', 'fcm_credo_secret_key' );
+        register_setting( 'fcm_settings_group', 'fcm_credo_mode' );
+    }
+
+    public function settings_page_html() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        ?>
+        <div class="wrap">
+            <h1><?php _e( 'Conference Manager Settings', 'conference-manager' ); ?></h1>
+            <form action="options.php" method="post">
+                <?php
+                settings_fields( 'fcm_settings_group' );
+                do_settings_sections( 'fcm_settings_group' );
+                ?>
+                <h2><?php _e( 'Credo Central Integration', 'conference-manager' ); ?></h2>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Credo Mode', 'conference-manager' ); ?></th>
+                        <td>
+                            <select name="fcm_credo_mode">
+                                <option value="test" <?php selected( get_option('fcm_credo_mode'), 'test' ); ?>><?php _e( 'Test', 'conference-manager' ); ?></option>
+                                <option value="live" <?php selected( get_option('fcm_credo_mode'), 'live' ); ?>><?php _e( 'Live', 'conference-manager' ); ?></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Credo Public Key', 'conference-manager' ); ?></th>
+                        <td><input type="text" name="fcm_credo_public_key" value="<?php echo esc_attr( get_option('fcm_credo_public_key') ); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e( 'Credo Secret Key', 'conference-manager' ); ?></th>
+                        <td><input type="password" name="fcm_credo_secret_key" value="<?php echo esc_attr( get_option('fcm_credo_secret_key') ); ?>" class="regular-text" /></td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
     }
 
     public function add_conference_meta_boxes() {
