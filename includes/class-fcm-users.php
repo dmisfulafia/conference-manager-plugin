@@ -324,8 +324,46 @@ class FCM_Users {
                     </div>
 
                 <?php elseif ( $active_tab === 'bookings' ) : ?>
-                    <h3>Your Bookings</h3>
-                    <p>Bookings will appear here (Phase 4 & 6).</p>
+                    <h3>Your Bookings & Receipts</h3>
+                    <?php
+                    $bookings = get_posts( array(
+                        'post_type' => 'conference_booking',
+                        'author' => $user_id,
+                        'numberposts' => -1,
+                        'post_status' => 'publish'
+                    ) );
+
+                    if ( ! empty( $bookings ) ) {
+                        echo '<div class="fcm-bookings-list">';
+                        foreach ( $bookings as $booking ) {
+                            $conference_id = get_post_meta( $booking->ID, 'conference_id', true );
+                            $status = get_post_meta( $booking->ID, 'payment_status', true );
+                            $amount = get_post_meta( $booking->ID, 'amount', true );
+                            $type = get_post_meta( $booking->ID, 'booking_type', true );
+                            
+                            echo '<div class="fcm-booking-card" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">';
+                            echo '<div>';
+                            echo '<h4>' . ( $conference_id ? get_the_title( $conference_id ) : 'Submission Fee' ) . '</h4>';
+                            echo '<p><strong>Booking ID:</strong> #' . $booking->ID . '</p>';
+                            echo '<p><strong>Type:</strong> ' . ( $type ? ucwords(str_replace('_', ' ', $type)) : 'Attendance' ) . '</p>';
+                            echo '<p><strong>Amount:</strong> ' . ( $amount > 0 ? 'NGN ' . number_format($amount, 2) : 'Free' ) . '</p>';
+                            echo '<p><strong>Status:</strong> <span style="color:' . ($status === 'paid' ? 'green' : 'orange') . ';">' . strtoupper($status) . '</span></p>';
+                            echo '</div>';
+                            
+                            if ( $status === 'paid' ) {
+                                $qr_url = FCM_QR_Generator::get_qr_code_url( $booking->ID, '100x100' );
+                                echo '<div>';
+                                echo '<img src="' . esc_url( $qr_url ) . '" alt="QR Code" style="border:1px solid #eee; padding:5px; border-radius:5px;" />';
+                                echo '<div style="text-align:center; font-size:0.8em; margin-top:5px;">Check-in QR</div>';
+                                echo '</div>';
+                            }
+                            echo '</div>';
+                        }
+                        echo '</div>';
+                    } else {
+                        echo '<p>You have no bookings yet.</p>';
+                    }
+                    ?>
                 <?php elseif ( $active_tab === 'submissions' ) : ?>
                     <h3>Your Submissions</h3>
                     <p>Submissions will appear here (Phase 5).</p>
