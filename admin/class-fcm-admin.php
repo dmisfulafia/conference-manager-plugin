@@ -17,6 +17,199 @@ class FCM_Admin {
         // Submission Meta Boxes
         add_action( 'add_meta_boxes', array( $this, 'add_submission_meta_boxes' ) );
         add_action( 'save_post', array( $this, 'save_submission_meta_boxes' ) );
+        
+        // Analytics & Export
+        add_action( 'admin_menu', array( $this, 'add_analytics_page' ) );
+        add_action( 'admin_init', array( $this, 'handle_csv_export' ) );
+    }
+
+    public function add_analytics_page() {
+        add_submenu_page(
+            'edit.php?post_type=conference',
+            __( 'Analytics & Export', 'conference-manager' ),
+            __( 'Analytics & Export', 'conference-manager' ),
+            'manage_options',
+            'fcm-analytics',
+            array( $this, 'analytics_page_html' )
+        );
+    }
+
+    public function handle_csv_export() {
+        if ( isset( $_GET['page'] ) && $_GET['page'] === 'fcm-analytics' && isset( $_GET['fcm_export_csv'] ) ) {
+            if ( ! current_user_can( 'manage_options' ) ) return;
+
+            $conference_filter = isset( $_GET['filter_conference'] ) ? intval( $_GET['filter_conference'] ) : 0;
+            $status_filter = isset( $_GET['filter_status'] ) ? sanitize_text_field( $_GET['filter_status'] ) : '';
+
+            $args = array(
+                'post_type' => 'conference_booking',
+                'numberposts' => -1,
+                'post_status' => 'publish',
+            );
+
+            $meta_query = array();
+            if ( $conference_filter > 0 ) {
+                $meta_query[] = array(
+                    'key' => 'conference_id',
+                    'value' => $conference_filter,
+                );
+            }
+            if ( ! empty( $status_filter ) ) {
+                $meta_query[] = array(
+                    'key' => 'payment_status',
+                    'value' => $status_filter,
+                );
+            }
+
+            if ( ! empty( $meta_query ) ) {
+                $args['meta_query'] = $meta_query;
+            }
+
+            $bookings = get_posts( $args );
+
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="bookings_export_' . date('Y-m-d') . '.csv"');
+            
+            $output = fopen('php://output', 'w');
+            fputcsv($output, array('Booking ID', 'Attendee First Name', 'Attendee Last Name', 'Email', 'Phone', 'Institution', 'Conference', 'Amount (NGN)', 'Status', 'Date'));
+
+            foreach ( $bookings as $booking ) {
+                $user = get_userdata( $booking->post_author );
+                $conference_id = get_post_meta( $booking->ID, 'conference_id', true );
+                $status = get_post_meta( $booking->ID, 'payment_status', true );
+                $amount = get_post_meta( $booking->ID, 'amount', true );
+                $phone = get_user_meta( $user->ID, 'fcm_phone', true );
+                $institution = get_user_meta( $user->ID, 'fcm_institution', true );
+
+                fputcsv($output, array(
+                    $booking->ID,
+                    $user->first_name,
+                    $user->last_name,
+                    $user->user_email,
+                    $phone,
+                    $institution,
+                    $conference_id ? get_the_title( $conference_id ) : 'N/A',
+                    $amount,
+                    strtoupper($status),
+                    $booking->post_date
+                ));
+            }
+
+            fclose($output);
+            exit;
+        }
+    }
+
+    public function analytics_page_html() {
+        if ( ! current_user_can( 'manage_options' ) ) return;
+
+        $conferences = get_posts( array( 'post_type' => 'conference', 'numberposts' => -1 ) );
+        
+        $conference_filter = isset( $_GET['filter_conference'] ) ? intval( $_GET['filter_conference'] ) : 0;
+        $status_filter = isset( $_GET['filter_status'] ) ? sanitize_text_field( $_GET['filter_status'] ) : '';
+        $search_query = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
+
+        $args = array(
+            'post_type' => 'conference_booking',
+            'numberposts' => -1,
+            'post_status' => 'publish',
+            's' => $search_query
+        );
+
+        $meta_query = array();
+        if ( $conference_filter > 0 ) {
+            $meta_query[] = array( 'key' => 'conference_id', 'value' => $conference_filter );
+        }
+        if ( ! empty( $status_filter ) ) {
+            $meta_query[] = array( 'key' => 'payment_status', 'value' => $status_filter );
+        }
+
+        if ( ! empty( $meta_query ) ) {
+            $args['meta_query'] = $meta_query;
+        }
+
+        $bookings = get_posts( $args );
+
+        ?>
+        <div class="wrap">
+            <h1><?php _e( 'Bookings Analytics & Export', 'conference-manager' ); ?></h1>
+            
+            <form method="get" action="">
+                <input type="hidden" name="post_type" value="conference">
+                <input type="hidden" name="page" value="fcm-analytics">
+                
+                <div class="tablenav top">
+                    <div class="alignleft actions">
+                        <select name="filter_conference">
+                            <option value="0">All Conferences</option>
+                            <?php foreach ( $conferences as $conf ) : ?>
+                                <option value="<?php echo esc_attr( $conf->ID ); ?>" <?php selected( $conference_filter, $conf->ID ); ?>><?php echo esc_html( $conf->post_title ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        
+                        <select name="filter_status">
+                            <option value="">All Statuses</option>
+                            <option value="paid" <?php selected( $status_filter, 'paid' ); ?>>Paid</option>
+                            <option value="pending" <?php selected( $status_filter, 'pending' ); ?>>Pending</option>
+                        </select>
+                        
+                        <input type="text" name="s" value="<?php echo esc_attr( $search_query ); ?>" placeholder="Search Bookings...">
+                        
+                        <input type="submit" name="filter_action" id="post-query-submit" class="button" value="Filter">
+                        
+                        <a href="<?php echo esc_url( add_query_arg( 'fcm_export_csv', '1' ) ); ?>" class="button button-primary" style="margin-left: 15px;">Export to CSV</a>
+                    </div>
+                </div>
+            </form>
+
+            <table class="wp-list-table widefat fixed striped" style="margin-top:15px;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Attendee</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Conference</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ( empty( $bookings ) ) : ?>
+                        <tr><td colspan="8">No bookings found matching criteria.</td></tr>
+                    <?php else : ?>
+                        <?php foreach ( $bookings as $booking ) : 
+                            $user = get_userdata( $booking->post_author );
+                            $conference_id = get_post_meta( $booking->ID, 'conference_id', true );
+                            $status = get_post_meta( $booking->ID, 'payment_status', true );
+                            $amount = get_post_meta( $booking->ID, 'amount', true );
+                            $phone = get_user_meta( $user->ID, 'fcm_phone', true );
+                        ?>
+                            <tr>
+                                <td>#<?php echo esc_html( $booking->ID ); ?></td>
+                                <td><?php echo esc_html( $user ? $user->first_name . ' ' . $user->last_name : 'Unknown' ); ?></td>
+                                <td><?php echo esc_html( $user ? $user->user_email : '' ); ?></td>
+                                <td><?php echo esc_html( $phone ); ?></td>
+                                <td><?php echo esc_html( $conference_id ? get_the_title( $conference_id ) : 'N/A' ); ?></td>
+                                <td><?php echo esc_html( number_format( (float) $amount, 2 ) ); ?></td>
+                                <td>
+                                    <?php 
+                                    if ( $status === 'paid' ) {
+                                        echo '<span style="color:green;font-weight:bold;">PAID</span>';
+                                    } else {
+                                        echo '<span style="color:orange;font-weight:bold;">PENDING</span>';
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo esc_html( date( 'Y-m-d', strtotime( $booking->post_date ) ) ); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
     }
 
     public function add_settings_page() {
