@@ -13,10 +13,25 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('title'); // Prof, Dr, Mr, Mrs, Ms, etc.
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('phone');
+            $table->enum('gender', ['Male', 'Female', 'Other']);
+            $table->string('occupation');
+            $table->string('institution')->nullable();
+            $table->string('country');
             $table->string('password');
+            $table->enum('role', ['super_admin', 'admin', 'user'])->default('user');
+            
+            // Profile & Extra Information (not compulsory/optional for now)
+            $table->string('passport_photo')->nullable();
+            $table->string('student_id_card')->nullable();
+            $table->string('address')->nullable();
+            $table->string('next_of_kin')->nullable();
+            $table->string('next_of_kin_phone')->nullable();
+            
             $table->rememberToken();
             $table->timestamps();
         });
