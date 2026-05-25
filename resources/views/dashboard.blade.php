@@ -726,6 +726,21 @@
     <!-- Dynamic Price Calculation Scripts -->
     <script>
         $(document).ready(function() {
+            // Check for payment callback indicators in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('payment_success')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                $('<div class="alert alert-success border-0 shadow-sm mb-4 alert-dismissible fade show" role="alert">' +
+                    '<i class="bi bi-patch-check-fill me-2"></i> <strong>Congratulations!</strong> Your payment has been successfully processed and verified! Your Submissions Portal is now unlocked.' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                  '</div>').insertBefore('.main-content > div').first();
+            } else if (urlParams.has('payment_error')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                $('<div class="alert alert-danger border-0 shadow-sm mb-4 alert-dismissible fade show" role="alert">' +
+                    '<i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Payment Unsuccessful:</strong> The payment verification was unsuccessful or cancelled.' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                  '</div>').insertBefore('.main-content > div').first();
+            }
             // Function to recalculate registration price inside a specific modal/form
             function calculateTotal($form) {
                 let total = 0.00;
@@ -807,22 +822,23 @@
                                 bootstrap.Modal.getInstance($modal[0]).hide();
                             }
 
-                            // Initialize and trigger Credo Inline widget
-                            const handler = CredoWidget.setup({
-                                key: response.public_key,
-                                email: response.email,
-                                paymentLink: response.payment_link, // Pass pre-initialized secure gateway checkout link directly
-                                callbackUrl: response.callback_url,
-                                onClose: () => {
-                                    alert("Checkout session closed. If your payment went through, please use the Re-verify button on your Payments History log.");
+                            // Open secure centered popup window pointing directly to the payment link
+                            let width = 500;
+                            let height = 700;
+                            let left = (screen.width / 2) - (width / 2);
+                            let top = (screen.height / 2) - (height / 2);
+                            
+                            let popup = window.open(response.payment_link, 'CredoCheckout', 'width=' + width + ',height=' + height + ',top=' + top + ',left=' + left + ',resizable=yes,scrollbars=yes,status=yes');
+                            
+                            $btn.html('<i class="bi bi-hourglass-split animate-pulse"></i> Awaiting Payment...');
+
+                            // Track popup state
+                            let timer = setInterval(function() {
+                                if (popup.closed) {
+                                    clearInterval(timer);
                                     window.location.reload();
-                                },
-                                callBack: (res) => {
-                                    // Redirect to verification url on success
-                                    window.location.href = response.callback_url + '?transRef=' + response.reference;
                                 }
-                            });
-                            handler.openIframe();
+                            }, 1500);
                         } else {
                             alert(response.message || "Unable to initiate payment popup. Please try again.");
                             $btn.prop('disabled', false).html(originalText);

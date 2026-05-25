@@ -158,7 +158,7 @@ class PaymentController extends Controller
 
         // If already marked successful, skip verifying again
         if ($payment->status === 'successful') {
-            return redirect()->route('dashboard')->with('success', 'Your payment is already processed and active!');
+            return view('payment_status', ['status' => 'success']);
         }
 
         // Verify with gateway API (Safe Server-side Verification)
@@ -169,17 +169,20 @@ class PaymentController extends Controller
             
             if ($gatewayStatus === 'successful' || $gatewayStatus === 'success') {
                 $this->markPaymentAsSuccessful($payment, $verifyData);
-                return redirect()->route('dashboard')->with('success', 'Congratulations! Your payment has been successfully verified.');
+                return view('payment_status', ['status' => 'success']);
             }
         }
 
         // Keep it pending or update to failed
         $payment->update([
             'status' => 'failed',
-            'gateway_response' => $verifyData,
+            'gateway_response' => $verifyData ?? null,
         ]);
 
-        return redirect()->route('dashboard')->with('error', 'Your payment verification was unsuccessful or is still processing.');
+        return view('payment_status', [
+            'status' => 'failed',
+            'message' => 'Your payment verification was unsuccessful or is still processing.'
+        ]);
     }
 
     /**
