@@ -65,6 +65,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ));
     })->name('dashboard');
 
+    // Conferences Listing
+    Route::get('/conferences', function () {
+        $user = Auth::user();
+        
+        $ongoingConferences = \App\Models\Conference::with('attendeeTypes')
+            ->where('status', 'ongoing')
+            ->orderBy('start_date', 'asc')
+            ->get();
+            
+        $pastConferences = \App\Models\Conference::with('attendeeTypes')
+            ->where('status', 'past')
+            ->orderBy('start_date', 'desc')
+            ->get();
+            
+        $myRegistrations = $user->registrations()
+            ->with(['conference', 'attendeeType'])
+            ->get();
+            
+        return view('conferences', compact('ongoingConferences', 'pastConferences', 'myRegistrations'));
+    })->name('conferences.index');
+
     // Profile Management
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
@@ -79,6 +100,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Structured Submissions
     Route::post('/submissions/abstract', [\App\Http\Controllers\SubmissionController::class, 'submitAbstract'])->name('submissions.abstract');
     Route::post('/submissions/full-paper', [\App\Http\Controllers\SubmissionController::class, 'submitFullPaper'])->name('submissions.full-paper');
+
+    // Help & Complaints Desk
+    Route::get('/complaints', [\App\Http\Controllers\ComplaintController::class, 'index'])->name('complaints.index');
+    Route::post('/complaints', [\App\Http\Controllers\ComplaintController::class, 'store'])->name('complaints.store');
 });
 
 // Protected Administration Panel (Authenticated, Verified, AND Admin/Super Admin)
@@ -98,4 +123,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::post('/conferences', [\App\Http\Controllers\AdminController::class, 'storeConference'])->name('admin.conferences.store');
     Route::put('/conferences/{conference}', [\App\Http\Controllers\AdminController::class, 'updateConference'])->name('admin.conferences.update');
     Route::delete('/conferences/{conference}', [\App\Http\Controllers\AdminController::class, 'deleteConference'])->name('admin.conferences.delete');
+
+    // Manage complaints
+    Route::get('/complaints', [\App\Http\Controllers\ComplaintController::class, 'adminIndex'])->name('admin.complaints');
+    Route::post('/complaints/{complaint}/reply', [\App\Http\Controllers\ComplaintController::class, 'adminReply'])->name('admin.complaints.reply');
 });

@@ -241,8 +241,8 @@
             <li class="sidebar-item">
                 <a href="#"><i class="bi bi-wallet2"></i> Payments Log</a>
             </li>
-            <li class="sidebar-item">
-                <a href="#"><i class="bi bi-chat-left-dots"></i> Complaints</a>
+            <li class="sidebar-item {{ Request::routeIs('admin.complaints') ? 'active' : '' }}">
+                <a href="{{ route('admin.complaints') }}"><i class="bi bi-chat-left-dots"></i> Complaints</a>
             </li>
             <li class="sidebar-item mt-4">
                 <a href="{{ route('dashboard') }}" class="text-warning"><i class="bi bi-arrow-left-circle"></i> User Dashboard</a>

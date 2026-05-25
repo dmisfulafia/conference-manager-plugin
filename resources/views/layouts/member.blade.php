@@ -186,14 +186,14 @@
             <li class="sidebar-item {{ Request::routeIs('profile.show') ? 'active' : '' }}">
                 <a href="{{ route('profile.show') }}"><i class="bi bi-person-circle"></i> Profile</a>
             </li>
-            <li class="sidebar-item">
-                <a href="#"><i class="bi bi-journal-bookmark-fill"></i> Conferences</a>
+            <li class="sidebar-item {{ Request::routeIs('conferences.index') ? 'active' : '' }}">
+                <a href="{{ route('conferences.index') }}"><i class="bi bi-journal-bookmark-fill"></i> Conferences</a>
             </li>
             <li class="sidebar-item">
                 <a href="#"><i class="bi bi-wallet2"></i> Payments</a>
             </li>
-            <li class="sidebar-item">
-                <a href="#"><i class="bi bi-chat-left-dots"></i> Complaints</a>
+            <li class="sidebar-item {{ Request::routeIs('complaints.index') ? 'active' : '' }}">
+                <a href="{{ route('complaints.index') }}"><i class="bi bi-chat-left-dots"></i> Complaints</a>
             </li>
         </ul>
         <div class="sidebar-footer">

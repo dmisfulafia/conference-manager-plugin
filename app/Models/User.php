@@ -88,6 +88,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the complaints filed by this user.
+     */
+    public function complaints(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
