@@ -36,7 +36,7 @@ class CredoService
             $response = Http::withHeaders([
                 'Authorization' => $this->publicKey,
                 'Content-Type' => 'application/json',
-            ])->post("{$this->apiUrl}/transaction/initialize", [
+            ])->withoutVerifying()->post("{$this->apiUrl}/transaction/initialize", [
                 'amount' => $amountInKobo,
                 'email' => $email,
                 'currency' => 'NGN',
@@ -72,7 +72,7 @@ class CredoService
             $response = Http::withHeaders([
                 'Authorization' => $this->secretKey,
                 'Content-Type' => 'application/json',
-            ])->get("{$this->apiUrl}/transaction/{$reference}/verify");
+            ])->withoutVerifying()->get("{$this->apiUrl}/transaction/{$reference}/verify");
 
             if ($response->successful()) {
                 $data = $response->json();

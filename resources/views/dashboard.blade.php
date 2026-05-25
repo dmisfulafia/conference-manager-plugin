@@ -229,8 +229,6 @@
         </div>
     </div>
 
-    </div>
-
     <!-- Submissions & Abstract Portal Section -->
     <div id="submissions-section" class="row mb-5">
         <div class="col-12">

@@ -79,6 +79,12 @@ class PaymentController extends Controller
 
         // Security check: Verify attendee type pricing belongs to the conference
         if ($type->conference_id !== $conf->id) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid attendee pricing option selected.'
+                ], 400);
+            }
             return back()->with('error', 'Invalid attendee pricing option selected.');
         }
 
@@ -97,12 +103,24 @@ class PaymentController extends Controller
         }
 
         if ($total <= 0) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid checkout total. Cannot checkout free registrations.'
+                ], 400);
+            }
             return back()->with('error', 'Invalid checkout total. Cannot checkout free registrations.');
         }
 
         // Check if student verification is required
         if (stripos($type->name, 'student') !== false) {
             if (stripos($user->occupation, 'student') === false || !$user->student_id_verified) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You must have a verified Student ID Card on your profile to register with student rates.'
+                    ], 403);
+                }
                 return redirect()->route('profile.show')->with('error', 'You must have a verified Student ID Card on your profile to register with student rates.');
             }
         }
@@ -173,6 +191,12 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Checkout Initialization Error: " . $e->getMessage());
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to initiate checkout transaction: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'Unable to initiate checkout transaction. Please try again later.');
         }
     }

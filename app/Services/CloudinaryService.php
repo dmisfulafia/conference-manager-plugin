@@ -44,7 +44,7 @@ class CloudinaryService
 
         try {
             // Send Multipart API call to Cloudinary
-            $response = Http::asMultipart()
+            $response = Http::withoutVerifying()->asMultipart()
                 ->attach('file', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
                 ->post("https://api.cloudinary.com/v1_1/{$this->cloudName}/auto/upload", [
                     'api_key' => $this->apiKey,
@@ -89,7 +89,7 @@ class CloudinaryService
         $signature = sha1($sigString);
 
         try {
-            $response = Http::post("https://api.cloudinary.com/v1_1/{$this->cloudName}/image/destroy", [
+            $response = Http::withoutVerifying()->post("https://api.cloudinary.com/v1_1/{$this->cloudName}/image/destroy", [
                 'public_id' => $publicId,
                 'api_key' => $this->apiKey,
                 'timestamp' => $timestamp,
@@ -102,7 +102,7 @@ class CloudinaryService
             }
 
             // Try raw destroy if image destroy returns not found (e.g. for PDFs/Word files)
-            $responseRaw = Http::post("https://api.cloudinary.com/v1_1/{$this->cloudName}/raw/destroy", [
+            $responseRaw = Http::withoutVerifying()->post("https://api.cloudinary.com/v1_1/{$this->cloudName}/raw/destroy", [
                 'public_id' => $publicId,
                 'api_key' => $this->apiKey,
                 'timestamp' => $timestamp,
