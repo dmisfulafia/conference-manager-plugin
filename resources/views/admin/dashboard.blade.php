@@ -37,12 +37,14 @@
 
     <!-- Stat 4: Total Revenue -->
     <div class="col-xl-3 col-sm-6">
-        <div class="stat-card shadow-sm">
-            <div class="stat-card-icon" style="background-color: #fef3c7; color: #d97706;"><i class="bi bi-cash-stack"></i></div>
-            <h6 class="text-muted small uppercase fw-bold">Revenue </h6>
-            <h2 class="heading-font fw-extrabold mt-1">₦{{ number_format($stats['total_payments'], 2) }}</h2>
-            <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i> Successfully processed</p>
-        </div>
+        <a href="{{ route('admin.payments') }}" class="text-decoration-none text-dark d-block h-100">
+            <div class="stat-card shadow-sm">
+                <div class="stat-card-icon" style="background-color: #fef3c7; color: #d97706;"><i class="bi bi-cash-stack"></i></div>
+                <h6 class="text-muted small uppercase fw-bold">Revenue </h6>
+                <h2 class="heading-font fw-extrabold mt-1">₦{{ number_format($stats['total_payments'], 2) }}</h2>
+                <p class="text-success small mb-0"><i class="bi bi-journal-check me-1"></i> View payment ledger</p>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -52,14 +54,19 @@
         <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 16px; border: 1px solid rgba(157, 113, 38, 0.08) !important;">
             <h4 class="heading-font fw-bold text-academic-green mb-4"><i class="bi bi-lightning-fill text-warning me-2"></i> Quick Administrative Tools</h4>
             <div class="row g-3">
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <a href="{{ route('admin.conferences') }}" class="btn btn-academic w-100 py-3 shadow-sm" style="border-radius: 12px;">
-                        <i class="bi bi-plus-circle-fill d-block fs-3 mb-2"></i> Create Conference
+                        <i class="bi bi-plus-circle-fill d-block fs-3 mb-2"></i> Conferences
                     </a>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <a href="{{ route('admin.users') }}" class="btn btn-gold w-100 py-3 shadow-sm" style="border-radius: 12px;">
-                        <i class="bi bi-people-fill d-block fs-3 mb-2"></i> Manage Accounts
+                        <i class="bi bi-people-fill d-block fs-3 mb-2"></i> User Accounts
+                    </a>
+                </div>
+                <div class="col-sm-4">
+                    <a href="{{ route('admin.payments') }}" class="btn btn-dark w-100 py-3 shadow-sm" style="border-radius: 12px;">
+                        <i class="bi bi-wallet2 d-block fs-3 mb-2"></i> Payments Log
                     </a>
                 </div>
                 @if(Auth::user()->isSuperAdmin())

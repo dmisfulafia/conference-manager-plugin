@@ -238,8 +238,8 @@
             <li class="sidebar-item {{ Request::routeIs('admin.conferences') ? 'active' : '' }}">
                 <a href="{{ route('admin.conferences') }}"><i class="bi bi-journal-bookmark-fill"></i> Conferences</a>
             </li>
-            <li class="sidebar-item">
-                <a href="#"><i class="bi bi-wallet2"></i> Payments Log</a>
+            <li class="sidebar-item {{ Request::routeIs('admin.payments') ? 'active' : '' }}">
+                <a href="{{ route('admin.payments') }}"><i class="bi bi-wallet2"></i> Payments Log</a>
             </li>
             <li class="sidebar-item {{ Request::routeIs('admin.complaints') ? 'active' : '' }}">
                 <a href="{{ route('admin.complaints') }}"><i class="bi bi-chat-left-dots"></i> Complaints</a>

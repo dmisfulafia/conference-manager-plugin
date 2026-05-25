@@ -23,6 +23,45 @@ class PaymentController extends Controller
     }
 
     /**
+     * Display a listing of the member's payments.
+     */
+    public function index()
+    {
+        $user = Auth::user();
+        
+        $totalPayments = $user->payments()
+            ->where('status', 'successful')
+            ->sum('amount');
+            
+        $payments = $user->payments()
+            ->with(['registration.conference', 'registration.attendeeType'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
+        return view('payments.index', compact('payments', 'totalPayments'));
+    }
+
+    /**
+     * Render the official printable receipt for a successful payment.
+     */
+    public function receipt(Payment $payment)
+    {
+        // Security check: Only the owner or an admin can access
+        if ($payment->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized access to this receipt.');
+        }
+
+        if ($payment->status !== 'successful') {
+            return redirect()->route('payments.index')->with('error', 'Receipts can only be generated for successful payments.');
+        }
+
+        // Load relations for receipt details
+        $payment->load(['user', 'registration.conference', 'registration.attendeeType']);
+
+        return view('receipt', compact('payment'));
+    }
+
+    /**
      * Initialize payment and redirect to Credo Gateway checkout.
      */
     public function checkout(Request $request)

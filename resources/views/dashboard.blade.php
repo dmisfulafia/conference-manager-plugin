@@ -98,16 +98,18 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card shadow-sm border-0">
-                <div class="stat-card-icon"><i class="bi bi-credit-card-2-front"></i></div>
-                <h6 class="text-muted small uppercase fw-bold">Total Payments</h6>
-                <h3 class="heading-font fw-extrabold mt-1">₦{{ number_format($totalPayments, 2) }}</h3>
-                @if($totalPayments > 0)
-                    <p class="text-success small mb-0"><i class="bi bi-patch-check-fill me-1"></i> Payments successfully processed</p>
-                @else
-                    <p class="text-danger small mb-0"><i class="bi bi-exclamation-triangle me-1"></i> No transactions found</p>
-                @endif
-            </div>
+            <a href="{{ route('payments.index') }}" class="text-decoration-none text-dark d-block h-100">
+                <div class="stat-card shadow-sm border-0">
+                    <div class="stat-card-icon"><i class="bi bi-credit-card-2-front"></i></div>
+                    <h6 class="text-muted small uppercase fw-bold">Total Payments</h6>
+                    <h3 class="heading-font fw-extrabold mt-1">₦{{ number_format($totalPayments, 2) }}</h3>
+                    @if($totalPayments > 0)
+                        <p class="text-success small mb-0"><i class="bi bi-patch-check-fill me-1"></i> View payment invoices & receipts</p>
+                    @else
+                        <p class="text-danger small mb-0"><i class="bi bi-exclamation-triangle me-1"></i> No transactions found</p>
+                    @endif
+                </div>
+            </a>
         </div>
     </div>
 
@@ -702,7 +704,11 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        @if($payment->status === 'pending')
+                                        @if($payment->status === 'successful')
+                                            <a href="{{ route('payment.receipt', $payment->id) }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 shadow-sm">
+                                                <i class="bi bi-printer me-1"></i> Receipt
+                                            </a>
+                                        @elseif($payment->status === 'pending')
                                             <form action="{{ route('payment.reverify') }}" method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="reference" value="{{ $payment->reference }}">

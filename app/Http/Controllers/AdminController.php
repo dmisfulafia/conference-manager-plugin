@@ -345,4 +345,16 @@ class AdminController extends Controller
             return back()->with('error', 'An error occurred while verifying the Student ID: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Show all payment logs across the portal.
+     */
+    public function payments()
+    {
+        $payments = \App\Models\Payment::with(['user', 'registration.conference'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.payments', compact('payments'));
+    }
 }

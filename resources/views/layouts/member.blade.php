@@ -189,8 +189,8 @@
             <li class="sidebar-item {{ Request::routeIs('conferences.index') ? 'active' : '' }}">
                 <a href="{{ route('conferences.index') }}"><i class="bi bi-journal-bookmark-fill"></i> Conferences</a>
             </li>
-            <li class="sidebar-item">
-                <a href="#"><i class="bi bi-wallet2"></i> Payments</a>
+            <li class="sidebar-item {{ Request::routeIs('payments.*') ? 'active' : '' }}">
+                <a href="{{ route('payments.index') }}"><i class="bi bi-wallet2"></i> Payments</a>
             </li>
             <li class="sidebar-item {{ Request::routeIs('complaints.index') ? 'active' : '' }}">
                 <a href="{{ route('complaints.index') }}"><i class="bi bi-chat-left-dots"></i> Complaints</a>

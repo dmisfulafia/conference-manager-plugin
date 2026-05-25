@@ -93,9 +93,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/profile/student-id', [\App\Http\Controllers\ProfileController::class, 'uploadStudentId'])->name('profile.upload-student-id');
 
     // Payment Gateway & Credo Checkout
+    Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payment/checkout', [\App\Http\Controllers\PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
     Route::post('/payment/reverify', [\App\Http\Controllers\PaymentController::class, 'reverify'])->name('payment.reverify');
+    Route::get('/payment/receipt/{payment}', [\App\Http\Controllers\PaymentController::class, 'receipt'])->name('payment.receipt');
 
     // Structured Submissions
     Route::post('/submissions/abstract', [\App\Http\Controllers\SubmissionController::class, 'submitAbstract'])->name('submissions.abstract');
@@ -127,4 +129,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     // Manage complaints
     Route::get('/complaints', [\App\Http\Controllers\ComplaintController::class, 'adminIndex'])->name('admin.complaints');
     Route::post('/complaints/{complaint}/reply', [\App\Http\Controllers\ComplaintController::class, 'adminReply'])->name('admin.complaints.reply');
+
+    // Manage payments log
+    Route::get('/payments', [\App\Http\Controllers\AdminController::class, 'payments'])->name('admin.payments');
 });
