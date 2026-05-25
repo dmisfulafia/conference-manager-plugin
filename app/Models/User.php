@@ -25,6 +25,7 @@ use Illuminate\Notifications\Notifiable;
     'role',
     'passport_photo',
     'student_id_card',
+    'student_id_verified',
     'address',
     'next_of_kin',
     'next_of_kin_phone',
@@ -60,6 +61,30 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    /**
+     * Get the registrations for this user.
+     */
+    public function registrations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    /**
+     * Get the payments for this user.
+     */
+    public function payments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Get the submissions for this user.
+     */
+    public function submissions(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Submission::class, Registration::class);
     }
 
     /**

@@ -30,6 +30,7 @@ return new class extends Migration
             // Profile & Extra Information (not compulsory/optional for now)
             $table->string('passport_photo')->nullable();
             $table->string('student_id_card')->nullable();
+            $table->boolean('student_id_verified')->default(false);
             $table->string('address')->nullable();
             $table->string('next_of_kin')->nullable();
             $table->string('next_of_kin_phone')->nullable();

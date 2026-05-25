@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <p class="text-muted mb-0">Review registered conference attendees, manage user passwords, and delete unverified or duplicate accounts.</p>
+    <p class="text-muted mb-0">Review registered conference attendees, verify student ID cards, manage user passwords, and delete unverified or duplicate accounts.</p>
     @if(Auth::user()->isSuperAdmin())
         <button class="btn btn-academic px-4 py-2" data-bs-toggle="modal" data-bs-target="#addAdminModal">
             <i class="bi bi-person-plus-fill me-2"></i> Add Administrator
@@ -20,11 +20,11 @@
                 <th>Title</th>
                 <th>First Name</th>
                 <th>Last Name</th>
-                <th>Other Names</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Country</th>
                 <th>Role</th>
+                <th>Student ID</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -35,7 +35,6 @@
                     <td class="fw-semibold">{{ $user->title }}</td>
                     <td>{{ $user->first_name }}</td>
                     <td>{{ $user->last_name }}</td>
-                    <td class="text-muted">{{ $user->other_names ?? '-' }}</td>
                     <td><span class="badge bg-light text-dark font-monospace">{{ $user->email }}</span></td>
                     <td>{{ $user->phone }}</td>
                     <td>{{ $user->country }}</td>
@@ -46,6 +45,23 @@
                             <span class="badge bg-primary text-white">ADMIN</span>
                         @else
                             <span class="badge bg-secondary text-white">ATTENDEE</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if(stripos($user->occupation, 'student') !== false)
+                            @if($user->student_id_card)
+                                @if($user->student_id_verified)
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i> Verified</span>
+                                @else
+                                    <button class="btn btn-warning btn-sm px-2 py-1 shadow-sm font-monospace" data-bs-toggle="modal" data-bs-target="#verifyIdModal{{ $user->id }}" style="font-size: 0.75rem;">
+                                        <i class="bi bi-eye-fill"></i> Review
+                                    </button>
+                                @endif
+                            @else
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i class="bi bi-exclamation-octagon-fill me-1"></i> Missing</span>
+                            @endif
+                        @else
+                            <span class="text-muted small">Not Student</span>
                         @endif
                     </td>
                     <td>
@@ -84,6 +100,67 @@
                         @endif
                     </td>
                 </tr>
+
+                <!-- Review ID Modal -->
+                @if(stripos($user->occupation, 'student') !== false && $user->student_id_card)
+                <div class="modal fade" id="verifyIdModal{{ $user->id }}" tabindex="-1" aria-labelledby="verifyIdLabel{{ $user->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                            <div class="modal-header border-bottom-0 pb-0" style="background-color: var(--academic-green); color: white; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 20px;">
+                                <h5 class="modal-title heading-font fw-bold" id="verifyIdLabel{{ $user->id }}">Review Student ID Card</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4 text-center">
+                                <div class="mb-3 text-start">
+                                    <h6 class="fw-bold text-dark">Attendee Details:</h6>
+                                    <table class="table table-bordered table-sm mb-3">
+                                        <tr>
+                                            <th class="bg-light" style="width: 30%;">Name</th>
+                                            <td>{{ $user->title }} {{ $user->first_name }} {{ $user->last_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Occupation</th>
+                                            <td>{{ $user->occupation }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Institution</th>
+                                            <td>{{ $user->institution ?? 'Not Provided' }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                
+                                <div class="p-3 border rounded bg-light mb-4">
+                                    @if(stripos($user->student_id_card, '.pdf') !== false)
+                                        <div class="p-5 d-flex flex-column align-items-center">
+                                            <i class="bi bi-file-earmark-pdf-fill text-danger fs-1"></i>
+                                            <span class="fw-bold mt-2">Student_ID_Document.pdf</span>
+                                            <a href="{{ str_starts_with($user->student_id_card, 'http') ? $user->student_id_card : asset('storage/' . $user->student_id_card) }}" target="_blank" class="btn btn-primary mt-3"><i class="bi bi-box-arrow-up-right"></i> Open PDF in New Tab</a>
+                                        </div>
+                                    @else
+                                        <img src="{{ str_starts_with($user->student_id_card, 'http') ? $user->student_id_card : asset('storage/' . $user->student_id_card) }}" alt="Student ID Scan" class="img-fluid rounded border shadow-sm" style="max-height: 350px;">
+                                    @endif
+                                </div>
+
+                                <div class="d-flex justify-content-center gap-3">
+                                    <form action="{{ route('admin.users.verify-student-id', $user) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="verify">
+                                        <button type="submit" class="btn btn-success px-4 py-2"><i class="bi bi-check-circle-fill me-2"></i>Approve & Verify</button>
+                                    </form>
+                                    
+                                    <form action="{{ route('admin.users.verify-student-id', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to reject this ID card? The document will be deleted and the user will need to re-upload.');">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="reject">
+                                        <button type="submit" class="btn btn-outline-danger px-4 py-2"><i class="bi bi-x-circle-fill me-2"></i>Reject & Clear</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 @if($user->email_verified_at !== null && (!$user->isAdmin() || Auth::user()->isSuperAdmin()))
                 <!-- Change Password Modal for this specific user -->
@@ -230,14 +307,14 @@
                     extend: 'excelHtml5',
                     title: 'FULafia_Conference_Attendees',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
                     }
                 },
                 {
                     extend: 'csvHtml5',
                     title: 'FULafia_Conference_Attendees',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
                     }
                 },
                 'print'

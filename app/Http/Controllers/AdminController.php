@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\CloudinaryService;
 
 class AdminController extends Controller
 {
@@ -306,6 +307,42 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             Log::error("Conference deletion error: " . $e->getMessage());
             return back()->with('error', 'An error occurred while deleting the conference.');
+        }
+    }
+
+    /**
+     * Verify or Reject a student's ID Card.
+     */
+    public function verifyStudentId(Request $request, User $user, CloudinaryService $cloudinary)
+    {
+        $request->validate([
+            'status' => 'required|string|in:verify,reject',
+        ]);
+
+        try {
+            if ($request->status === 'verify') {
+                $user->update(['student_id_verified' => true]);
+                Log::info("Admin (ID: " . Auth::id() . ") verified Student ID for User: {$user->email}");
+                return back()->with('success', "Student ID for {$user->title} {$user->first_name} {$user->last_name} has been successfully verified!");
+            } else {
+                // Reject - reset verification and delete the file so they can re-upload
+                if ($user->student_id_card) {
+                    if (str_starts_with($user->student_id_card, 'http')) {
+                        $cloudinary->delete($user->student_id_card);
+                    } else {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($user->student_id_card);
+                    }
+                }
+                $user->update([
+                    'student_id_card' => null,
+                    'student_id_verified' => false,
+                ]);
+                Log::info("Admin (ID: " . Auth::id() . ") rejected and deleted Student ID for User: {$user->email}");
+                return back()->with('success', "Student ID for {$user->title} {$user->first_name} {$user->last_name} has been rejected and cleared. The user can now upload a fresh document.");
+            }
+        } catch (\Exception $e) {
+            Log::error("Student ID verification error: " . $e->getMessage());
+            return back()->with('error', 'An error occurred while verifying the Student ID: ' . $e->getMessage());
         }
     }
 }

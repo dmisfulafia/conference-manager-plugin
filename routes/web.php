@@ -31,12 +31,44 @@ Route::middleware('auth')->group(function () {
 // Protected Member Dashboard (Authenticated AND Verified)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
+        $user = Auth::user();
+        
         $ongoingConferences = \App\Models\Conference::with('attendeeTypes')
             ->where('status', 'ongoing')
             ->orderBy('start_date', 'asc')
             ->get();
-        return view('dashboard', compact('ongoingConferences'));
+            
+        $registrationsCount = $user->registrations()->count();
+        $submissionsCount = $user->submissions()->count();
+        
+        $totalPayments = $user->payments()
+            ->where('status', 'successful')
+            ->sum('amount');
+            
+        $recentPayments = $user->payments()
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+            
+        return view('dashboard', compact(
+            'ongoingConferences',
+            'registrationsCount',
+            'submissionsCount',
+            'totalPayments',
+            'recentPayments'
+        ));
     })->name('dashboard');
+
+    // Profile Management
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/passport', [\App\Http\Controllers\ProfileController::class, 'uploadPassport'])->name('profile.upload-passport');
+    Route::put('/profile/student-id', [\App\Http\Controllers\ProfileController::class, 'uploadStudentId'])->name('profile.upload-student-id');
+
+    // Payment Gateway & Credo Checkout
+    Route::post('/payment/checkout', [\App\Http\Controllers\PaymentController::class, 'checkout'])->name('payment.checkout');
+    Route::get('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
+    Route::post('/payment/reverify', [\App\Http\Controllers\PaymentController::class, 'reverify'])->name('payment.reverify');
 });
 
 // Protected Administration Panel (Authenticated, Verified, AND Admin/Super Admin)
@@ -48,6 +80,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
     Route::put('/users/{user}/password', [\App\Http\Controllers\AdminController::class, 'changePassword'])->name('admin.users.password');
     Route::delete('/users/{user}', [\App\Http\Controllers\AdminController::class, 'deleteUnverifiedUser'])->name('admin.users.delete');
+    Route::put('/users/{user}/verify-student-id', [\App\Http\Controllers\AdminController::class, 'verifyStudentId'])->name('admin.users.verify-student-id');
     Route::post('/add-admin', [\App\Http\Controllers\AdminController::class, 'addAdmin'])->name('admin.add-admin');
 
     // Manage conferences
