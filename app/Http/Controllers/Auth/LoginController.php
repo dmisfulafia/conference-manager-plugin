@@ -19,6 +19,9 @@ class LoginController extends Controller
             if (Auth::user()->email_verified_at === null) {
                 return redirect()->route('verification.notice');
             }
+            if (Auth::user()->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
             return redirect()->route('dashboard');
         }
         return view('auth.login');
@@ -44,6 +47,10 @@ class LoginController extends Controller
                 return redirect()->route('verification.notice');
             }
 
+            if ($user->isAdmin()) {
+                return redirect()->intended(route('admin.dashboard'));
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -63,6 +70,9 @@ class LoginController extends Controller
         }
 
         if ($user->email_verified_at !== null) {
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
             return redirect()->route('dashboard');
         }
 
@@ -105,6 +115,11 @@ class LoginController extends Controller
         DB::table('verification_codes')
             ->where('id', $verification->id)
             ->delete();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Your account has been successfully verified! Welcome to your admin dashboard.');
+        }
 
         return redirect()->route('dashboard')
             ->with('success', 'Your account has been successfully verified! Welcome to your dashboard.');

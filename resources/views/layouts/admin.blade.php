@@ -224,9 +224,10 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-brand">
-            <h5 class="heading-font text-white">FULafia Portal</h5>
-            <span class="badge bg-danger text-white px-2 py-1 mt-1 small">Admin Command Center</span>
+        <div class="sidebar-brand d-flex flex-column align-items-center py-4 text-center">
+            <img src="{{ asset('logo.png') }}" alt="FULafia Logo" class="mb-2" style="height: 60px; width: auto; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));">
+            <h5 class="heading-font text-white mb-0">FULafia Portal</h5>
+            <span class="badge bg-danger text-white px-2 py-1 mt-2 small">Admin Command Center</span>
         </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item {{ Request::routeIs('admin.dashboard') ? 'active' : '' }}">

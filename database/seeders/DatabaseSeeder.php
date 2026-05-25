@@ -83,31 +83,59 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // 5. Default Ongoing Conference
-        $conference = \App\Models\Conference::create([
-            'title' => '1st FULafia International Conference on Advanced Scientific Research',
-            'description' => 'Join academic scholars, researchers, and tech industry innovators at the Federal University of Lafia to explore artificial intelligence, renewable energy, and future computing breakthroughs.',
-            'start_date' => now()->addDays(30),
-            'end_date' => now()->addDays(33),
-            'venue' => 'ETF Lecture Theatre, FULafia Permanent Campus',
+        // 5. 5th FULafia Annual International Conference (Ongoing)
+        $ongoingConference = \App\Models\Conference::create([
+            'title' => '5th FULafia Annual International Conference',
+            'description' => 'Multidisciplinary International Conference on Insecurity and Sustainable Development: Multidisciplinary Pathways to Peace, Stability and National Transformation.',
+            'start_date' => '2026-08-10',
+            'end_date' => '2026-08-13',
+            'venue' => 'Federal University of Lafia, Nasarawa State, Nigeria',
             'status' => 'ongoing',
-            'accommodation_fee' => 15000.00,
-            'conference_material_fee' => 5000.00,
+            'accommodation_fee' => 0.00,
+            'conference_material_fee' => 0.00,
         ]);
 
-        // Seed attendee types for this conference
-        $categories = [
+        $ongoingCategories = [
             'Researchers' => 35000.00,
             'Postgraduate Students' => 25000.00,
-            'Undergraduate Students' => 10000.00,
+            'Undergraduate Students' => 0.00,
             'Corporate Bodies' => 100000.00,
-            'International attendee' => 150000.00,
-            'Virtual Attendee' => 15000.00,
+            'International attendee' => 0.00,
+            'Virtual Attendee' => 0.00,
         ];
 
-        foreach ($categories as $name => $fee) {
+        foreach ($ongoingCategories as $name => $fee) {
             \App\Models\AttendeeType::create([
-                'conference_id' => $conference->id,
+                'conference_id' => $ongoingConference->id,
+                'name' => $name,
+                'fee' => $fee,
+            ]);
+        }
+
+        // 6. 4th FULafia Annual International Conference (Past)
+        $pastConference = \App\Models\Conference::create([
+            'title' => '4th FULafia Annual International Conference',
+            'description' => 'International Conference on Artificial Intelligence: Blessing or Curse to National Development in Nigeria. Features a special panel discussion on "GMO: A Problem or Solution".',
+            'start_date' => '2025-03-04',
+            'end_date' => '2025-03-06',
+            'venue' => 'Malam Adamu Adamu Hall, Permanent Site, Federal University of Lafia',
+            'status' => 'past',
+            'accommodation_fee' => 0.00,
+            'conference_material_fee' => 0.00,
+        ]);
+
+        $pastCategories = [
+            'Researchers' => 35000.00,
+            'Postgraduate Students' => 25000.00,
+            'Undergraduate Students' => 0.00,
+            'Corporate Bodies' => 100000.00,
+            'International attendee' => 0.00,
+            'Virtual Attendee' => 0.00,
+        ];
+
+        foreach ($pastCategories as $name => $fee) {
+            \App\Models\AttendeeType::create([
+                'conference_id' => $pastConference->id,
                 'name' => $name,
                 'fee' => $fee,
             ]);

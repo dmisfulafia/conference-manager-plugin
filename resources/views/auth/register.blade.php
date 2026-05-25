@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="text-center mb-4">
+    <img src="{{ asset('logo.png') }}" alt="FULafia Logo" class="mb-3" style="height: 80px; width: auto; object-fit: contain;">
     <h2 class="heading-font fw-bold text-academic-green">Register</h2>
     <p class="text-muted">Create an account to register for conferences, make payments, and submit papers.</p>
 </div>
