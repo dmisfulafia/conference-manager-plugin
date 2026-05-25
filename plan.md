@@ -75,6 +75,9 @@ Schema::create('conferences', function (Blueprint $table) {
     $table->text('description');
     $table->date('start_date');
     $table->date('end_date');
+    $table->date('early_bird_deadline')->nullable(); // Cut-off date for Early Bird rates
+    $table->date('late_registration_deadline')->nullable(); // Cut-off date for Late rates
+    
     // add address, next of kin, next of kin phone
     $table->string('address')->nullable();
     $table->string('next_of_kin')->nullable();
@@ -89,14 +92,19 @@ Schema::create('conferences', function (Blueprint $table) {
 
 #### 4. `attendee_types`
 
-Configured per conference (e.g. Student, Virtual, Physical, International).
+Configured per conference (e.g. Researchers, Postgraduate Students, Corporate Bodies) with tiered pricing rates.
 
 ```php
 Schema::create('attendee_types', function (Blueprint $table) {
     $table->id();
     $table->foreignId('conference_id')->constrained()->onDelete('cascade');
-    $table->string('name'); // e.g., "Virtual Attendee", "Student Attendee"
-    $table->decimal('fee', 10, 2);
+    $table->string('name'); // e.g., "Researchers", "Postgraduate Students", "Corporate Bodies"
+    
+    // Tiered pricing categories
+    $table->decimal('early_bird_fee', 10, 2)->default(0.00);
+    $table->decimal('late_fee', 10, 2)->default(0.00);
+    $table->decimal('onsite_fee', 10, 2)->default(0.00);
+    
     $table->timestamps();
 });
 ```
@@ -115,6 +123,7 @@ Schema::create('registrations', function (Blueprint $table) {
     $table->boolean('wants_materials')->default(false);
     
     // Financial Trackers
+    $table->decimal('calculated_attendance_fee', 10, 2)->default(0.00); // Saved at checkout based on active date tier
     $table->boolean('is_attendance_paid')->default(false);
     $table->boolean('is_accommodation_paid')->default(false);
     $table->boolean('is_materials_paid')->default(false);
@@ -311,6 +320,40 @@ The admin section is reserved for `admin` and `super_admin` roles.
 * CRUD operations on Conferences.
 * Assign fields for Accommodation Fee, Material Fee, and set up dynamic Attendee Type Pricing.
 * Easily toggle status between `ongoing` and `past`.
+
+---
+
+## 💸 Attendee Category Pricing & Dynamic Payment Options
+
+The FULafia Conference platform calculates and processes registration payments based on six core attendee categories, dynamically presenting them to users and hiding any categories with zero cost.
+
+### 1. Database Architecture & Relationships
+
+*   **`conferences`**: Stores venue, schedule details, accommodation fee, and conference material fee.
+*   **`attendee_types`**: Stores the category name and standard fee for that conference.
+    *   **Core Categories:**
+        1.  *Researchers*
+        2.  *Postgraduate Students*
+        3.  *Undergraduate Students*
+        4.  *Corporate Bodies*
+        5.  *International attendee*
+        6.  *Virtual Attendee*
+*   **`registrations`**: Links a user to a conference, logs their chosen attendee type, and keeps track of checkbox states (`wants_accommodation`, `wants_materials`) as well as billing statuses.
+
+### 2. Admin Interface (Configuring Category Fees)
+
+*   **Modal Form Integration:** When configuring or updating a conference, administrators can define a distinct registration fee for all six standard categories using a dedicated, easy-to-use input form.
+*   **Dynamic Visibility Gating:** Admins can leave any category fee empty or set it to `0` to completely hide it from the attendee registration form on the frontend, ensuring only active, applicable pricing tiers are shown.
+
+### 3. Member Portal Interface (Dynamic Selections & Real-Time Checkout)
+
+*   **Dynamic Category Gating:** When an attendee clicks "Register & Pay" for an ongoing conference, the registration form queries the `attendee_types` table.
+    *   **CRITICAL RULE:** *Any attendee category with a fee of ₦0 is excluded from the radio selector list.*
+*   **Checkbox Add-on Toggles:** Attendees can choose to add optional packages:
+    *   `[Checkbox] Request Hostel/Guest Lodge Accommodation (+₦X,000)`
+    *   `[Checkbox] Purchase Conference Materials Bag & Program Pack (+₦Y,000)`
+*   **Live Javascript Totalizer:** A dynamic JQuery script listens to selection changes and instantly recalculates and displays the **Total Payment Amount** in real-time, utilizing CSS accent transitions (Gold highlight for categories, Academic Green glow for packages).
+*   **Credo Gateway Hand-off:** Clicking "Proceed to Secure Credo Checkout" submits the form to lock in registration parameters and process the payment.
 
 ---
 

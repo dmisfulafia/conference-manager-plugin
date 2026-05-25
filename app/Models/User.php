@@ -12,7 +12,9 @@ use Illuminate\Notifications\Notifiable;
 
 #[Fillable([
     'title',
-    'name',
+    'first_name',
+    'last_name',
+    'other_names',
     'email',
     'phone',
     'gender',
@@ -33,6 +35,16 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /**
+     * Get the user's full name.
+     */
+    protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => trim("{$this->first_name} {$this->last_name} {$this->other_names}"),
+        );
+    }
 
     /**
      * Determine if the user is a super admin.

@@ -18,7 +18,9 @@ class DatabaseSeeder extends Seeder
         // 1. Super Admin
         User::create([
             'title' => 'Prof.',
-            'name' => 'FULafia Super Admin',
+            'first_name' => 'FULafia',
+            'last_name' => 'SuperAdmin',
+            'other_names' => 'Portal',
             'email' => 'superadmin@fulafia.edu.ng',
             'phone' => '08012345678',
             'gender' => 'Male',
@@ -33,7 +35,9 @@ class DatabaseSeeder extends Seeder
         // 2. Regular Admin
         User::create([
             'title' => 'Dr.',
-            'name' => 'FULafia Admin',
+            'first_name' => 'FULafia',
+            'last_name' => 'Admin',
+            'other_names' => null,
             'email' => 'admin@fulafia.edu.ng',
             'phone' => '08087654321',
             'gender' => 'Female',
@@ -48,7 +52,9 @@ class DatabaseSeeder extends Seeder
         // 3. Regular Professional Attendee User
         User::create([
             'title' => 'Mr.',
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'other_names' => null,
             'email' => 'user@example.com',
             'phone' => '08123456789',
             'gender' => 'Male',
@@ -63,7 +69,9 @@ class DatabaseSeeder extends Seeder
         // 4. Student Attendee User
         User::create([
             'title' => 'Ms.',
-            'name' => 'Jane Smith',
+            'first_name' => 'Jane',
+            'last_name' => 'Smith',
+            'other_names' => null,
             'email' => 'student@example.com',
             'phone' => '09012345678',
             'gender' => 'Female',
@@ -74,5 +82,35 @@ class DatabaseSeeder extends Seeder
             'role' => 'user',
             'email_verified_at' => now(),
         ]);
+
+        // 5. Default Ongoing Conference
+        $conference = \App\Models\Conference::create([
+            'title' => '1st FULafia International Conference on Advanced Scientific Research',
+            'description' => 'Join academic scholars, researchers, and tech industry innovators at the Federal University of Lafia to explore artificial intelligence, renewable energy, and future computing breakthroughs.',
+            'start_date' => now()->addDays(30),
+            'end_date' => now()->addDays(33),
+            'venue' => 'ETF Lecture Theatre, FULafia Permanent Campus',
+            'status' => 'ongoing',
+            'accommodation_fee' => 15000.00,
+            'conference_material_fee' => 5000.00,
+        ]);
+
+        // Seed attendee types for this conference
+        $categories = [
+            'Researchers' => 35000.00,
+            'Postgraduate Students' => 25000.00,
+            'Undergraduate Students' => 10000.00,
+            'Corporate Bodies' => 100000.00,
+            'International attendee' => 150000.00,
+            'Virtual Attendee' => 15000.00,
+        ];
+
+        foreach ($categories as $name => $fee) {
+            \App\Models\AttendeeType::create([
+                'conference_id' => $conference->id,
+                'name' => $name,
+                'fee' => $fee,
+            ]);
+        }
     }
 }

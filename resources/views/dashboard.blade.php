@@ -242,6 +242,11 @@
         <div class="dashboard-navbar">
             <div class="heading-font fs-4 fw-bold">Dashboard</div>
             <div class="d-flex align-items-center">
+                @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-danger btn-sm px-3 rounded-pill me-2">
+                        <i class="bi bi-shield-lock-fill"></i> Admin Panel
+                    </a>
+                @endif
                 <div class="me-3 text-end d-none d-md-block">
                     <div class="fw-bold">{{ Auth::user()->name }}</div>
                     <span class="badge bg-success small" style="font-size: 0.75rem;">Verified Member</span>
@@ -309,8 +314,16 @@
                             <div class="profile-value">{{ Auth::user()->title }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="profile-label">Full Name</div>
-                            <div class="profile-value">{{ Auth::user()->name }}</div>
+                            <div class="profile-label">First Name</div>
+                            <div class="profile-value">{{ Auth::user()->first_name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-label">Last Name</div>
+                            <div class="profile-value">{{ Auth::user()->last_name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-label">Other Names</div>
+                            <div class="profile-value">{{ Auth::user()->other_names ?? 'None' }}</div>
                         </div>
 
                         <div class="col-md-6">
@@ -352,6 +365,124 @@
                 </div>
             </div>
         </div>
+
+        <!-- Ongoing Conferences Section -->
+        <div class="row g-4 mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm p-4 rounded-3 bg-white" style="border: 1px solid rgba(157, 113, 38, 0.08) !important;">
+                    <h4 class="heading-font fw-bold text-academic-green mb-4 border-bottom pb-2"><i class="bi bi-calendar-event-fill me-2 text-fulafia-gold"></i> Ongoing Conferences Catalog</h4>
+                    
+                    @if($ongoingConferences->isEmpty())
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                            <p class="mt-3 fs-6">There are no ongoing conferences configured on the portal at this time. Please check back later.</p>
+                        </div>
+                    @else
+                        <div class="row g-4">
+                            @foreach($ongoingConferences as $conf)
+                                <div class="col-xl-6">
+                                    <div class="border rounded-3 p-4 h-100 bg-light d-flex flex-column justify-content-between">
+                                        <div>
+                                            <h5 class="fw-bold text-academic-green mb-2">{{ $conf->title }}</h5>
+                                            <p class="text-muted small mb-3">{{ Str::limit($conf->description, 200) }}</p>
+                                            
+                                            <div class="mb-2 small text-dark"><i class="bi bi-geo-alt-fill text-fulafia-gold me-2"></i><strong>Venue:</strong> {{ $conf->venue }}</div>
+                                            <div class="mb-3 small text-dark"><i class="bi bi-calendar3 text-fulafia-gold me-2"></i><strong>Timeline:</strong> {{ $conf->start_date->format('M d, Y') }} - {{ $conf->end_date->format('M d, Y') }}</div>
+                                        </div>
+
+                                        <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+                                            @php
+                                                $activeTypes = $conf->attendeeTypes->where('fee', '>', 0);
+                                            @endphp
+                                            <div class="text-muted small">
+                                                @if($activeTypes->isNotEmpty())
+                                                    Available fees from <strong class="text-academic-green">₦{{ number_format($activeTypes->min('fee'), 2) }}</strong>
+                                                @else
+                                                    Registration fees pending
+                                                @endif
+                                            </div>
+                                            @if($activeTypes->isNotEmpty())
+                                                <button class="btn btn-gold px-3 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#registerModal{{ $conf->id }}">
+                                                    <i class="bi bi-bookmark-plus-fill me-1"></i> Register & Pay
+                                                </button>
+                                            @else
+                                                <button class="btn btn-secondary px-3 rounded-pill" disabled>
+                                                    Upcoming
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if($activeTypes->isNotEmpty())
+                                <!-- Registration Form Modal -->
+                                <div class="modal fade" id="registerModal{{ $conf->id }}" tabindex="-1" aria-labelledby="registerModalLabel{{ $conf->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                                            <div class="modal-header border-bottom-0 pb-0" style="background-color: var(--academic-green); color: white; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 20px;">
+                                                <h5 class="modal-title heading-font fw-bold" id="registerModalLabel{{ $conf->id }}">Conference Registration Form</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="#" method="POST" class="p-4 registration-form" data-conf-id="{{ $conf->id }}">
+                                                @csrf
+                                                <div class="mb-4">
+                                                    <h6 class="fw-bold text-dark mb-2">1. Select Your Attendee Category</h6>
+                                                    <p class="text-muted small">Please select the appropriate category you belong to. Note that some categories may require official ID verification upon arrival.</p>
+                                                    
+                                                    @foreach($activeTypes as $type)
+                                                        <div class="form-check p-3 mb-2 border rounded-3 attendee-category-row" style="cursor: pointer; transition: background-color 0.2s;">
+                                                            <input class="form-check-input attendee-radio" type="radio" name="attendee_type_id" id="type_{{ $type->id }}" value="{{ $type->id }}" data-fee="{{ $type->fee }}" required>
+                                                            <label class="form-check-label fw-bold d-block text-dark" for="type_{{ $type->id }}" style="cursor: pointer;">
+                                                                {{ $type->name }} <span class="float-end text-fulafia-gold">₦{{ number_format($type->fee, 2) }}</span>
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                <div class="mb-4">
+                                                    <h6 class="fw-bold text-dark mb-3">2. Additional Accommodation & Material Add-ons</h6>
+                                                    
+                                                    <div class="form-check p-3 mb-2 border rounded-3 wants-accommodation-row" style="cursor: pointer; transition: background-color 0.2s;">
+                                                        <input class="form-check-input accommodation-checkbox" type="checkbox" name="wants_accommodation" id="accommodation_{{ $conf->id }}" value="1" data-fee="{{ $conf->accommodation_fee }}">
+                                                        <label class="form-check-label fw-bold d-block text-dark" for="accommodation_{{ $conf->id }}" style="cursor: pointer;">
+                                                            Request University Hostel/Guest Lodge Accommodation <span class="float-end text-muted font-monospace">+₦{{ number_format($conf->accommodation_fee, 2) }}</span>
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="form-check p-3 mb-2 border rounded-3 wants-materials-row" style="cursor: pointer; transition: background-color 0.2s;">
+                                                        <input class="form-check-input materials-checkbox" type="checkbox" name="wants_materials" id="materials_{{ $conf->id }}" value="1" data-fee="{{ $conf->conference_material_fee }}">
+                                                        <label class="form-check-label fw-bold d-block text-dark" for="materials_{{ $conf->id }}" style="cursor: pointer;">
+                                                            Purchase Conference Materials Bag & Programs Pack <span class="float-end text-muted font-monospace">+₦{{ number_format($conf->conference_material_fee, 2) }}</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="p-3 bg-light rounded-3 mb-4 border" style="border-style: dashed !important;">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <div class="fw-bold text-dark">Calculated Payment Total:</div>
+                                                            <div class="text-muted small">Inclusive of baseline attendee registration & selected add-ons.</div>
+                                                        </div>
+                                                        <span class="fs-3 fw-extrabold text-academic-green total-display">₦0.00</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-grid">
+                                                    <button type="submit" class="btn btn-academic btn-lg py-3 shadow-sm" style="border-radius: 12px;" onclick="alert('This will securely initialize a transaction with Credo Gateway and process payment.'); return false;">
+                                                        <i class="bi bi-wallet2 me-2"></i> Proceed to Secure Credo Checkout
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Invisible Logout Form -->
@@ -359,7 +490,68 @@
         @csrf
     </form>
 
-    <!-- Bootstrap JS via CDN -->
+    <!-- jQuery & Bootstrap JS via CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dynamic Price Calculation Scripts -->
+    <script>
+        $(document).ready(function() {
+            // Function to recalculate registration price inside a specific modal/form
+            function calculateTotal($form) {
+                let total = 0.00;
+
+                // 1. Get selected attendee type fee
+                let $selectedRadio = $form.find('.attendee-radio:checked');
+                if ($selectedRadio.length > 0) {
+                    total += parseFloat($selectedRadio.data('fee')) || 0;
+                }
+
+                // 2. Add accommodation fee if checked
+                let $accommodationCheck = $form.find('.accommodation-checkbox');
+                if ($accommodationCheck.is(':checked')) {
+                    total += parseFloat($accommodationCheck.data('fee')) || 0;
+                }
+
+                // 3. Add material fee if checked
+                let $materialsCheck = $form.find('.materials-checkbox');
+                if ($materialsCheck.is(':checked')) {
+                    total += parseFloat($materialsCheck.data('fee')) || 0;
+                }
+
+                // Format total as Currency
+                let formattedTotal = '₦' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                $form.find('.total-display').text(formattedTotal);
+            }
+
+            // Bind triggers on modal radio and checkboxes changes
+            $('.registration-form').on('change', '.attendee-radio, .accommodation-checkbox, .materials-checkbox', function() {
+                let $form = $(this).closest('.registration-form');
+                calculateTotal($form);
+            });
+
+            // Highlight selected attendee row
+            $('.registration-form').on('click', '.attendee-category-row, .wants-accommodation-row, .wants-materials-row', function(e) {
+                // Trigger natural input state
+                let $input = $(this).find('input');
+                if (e.target !== $input[0]) {
+                    if ($input.attr('type') === 'radio') {
+                        $input.prop('checked', true).trigger('change');
+                    } else if ($input.attr('type') === 'checkbox') {
+                        $input.prop('checked', !$input.is(':checked')).trigger('change');
+                    }
+                }
+                
+                // Toggle active style
+                let $form = $(this).closest('.registration-form');
+                $form.find('.attendee-category-row').removeClass('bg-warning-subtle border-warning');
+                $form.find('.attendee-radio:checked').closest('.attendee-category-row').addClass('bg-warning-subtle border-warning');
+                
+                // Toggle checkboxes styles
+                $form.find('.wants-accommodation-row').toggleClass('bg-success-subtle border-success', $form.find('.accommodation-checkbox').is(':checked'));
+                $form.find('.wants-materials-row').toggleClass('bg-success-subtle border-success', $form.find('.materials-checkbox').is(':checked'));
+            });
+        });
+    </script>
 </body>
 </html>

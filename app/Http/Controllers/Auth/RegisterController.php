@@ -30,7 +30,9 @@ class RegisterController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:10',
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'other_names' => 'nullable|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'required|string|max:20',
             'gender' => 'required|string|in:Male,Female,Other',
@@ -45,7 +47,9 @@ class RegisterController extends Controller
 
             $user = User::create([
                 'title' => $request->title,
-                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'other_names' => $request->other_names,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'gender' => $request->gender,

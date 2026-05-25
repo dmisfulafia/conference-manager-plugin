@@ -23,10 +23,10 @@
 
     <div class="row">
         <!-- Title selection -->
-        <div class="col-md-4 mb-3">
+        <div class="col-md-2 col-4 mb-3">
             <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-            <select name="title" id="title" class="form-select" required>
-                <option value="" disabled selected>Select</option>
+            <select name="title" id="title" class="form-select px-2" required>
+                <option value="" disabled selected>Title</option>
                 <option value="Prof." {{ old('title') == 'Prof.' ? 'selected' : '' }}>Prof.</option>
                 <option value="Dr." {{ old('title') == 'Dr.' ? 'selected' : '' }}>Dr.</option>
                 <option value="Mr." {{ old('title') == 'Mr.' ? 'selected' : '' }}>Mr.</option>
@@ -35,10 +35,24 @@
             </select>
         </div>
 
-        <!-- Full Name -->
-        <div class="col-md-8 mb-3">
-            <label for="name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
-            <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" placeholder="e.g. John Doe" required>
+        <!-- First Name -->
+        <div class="col-md-5 col-8 mb-3">
+            <label for="first_name" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+            <input type="text" name="first_name" id="first_name" class="form-control" value="{{ old('first_name') }}" placeholder="First Name" required>
+        </div>
+
+        <!-- Last Name -->
+        <div class="col-md-5 col-12 mb-3">
+            <label for="last_name" class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+            <input type="text" name="last_name" id="last_name" class="form-control" value="{{ old('last_name') }}" placeholder="Last Name" required>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Other Names -->
+        <div class="col-12 mb-3">
+            <label for="other_names" class="form-label fw-semibold">Other Names <span class="text-muted">(Optional)</span></label>
+            <input type="text" name="other_names" id="other_names" class="form-control" value="{{ old('other_names') }}" placeholder="Other Names (Middle Name)">
         </div>
     </div>
 
