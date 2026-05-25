@@ -637,7 +637,7 @@
 
                                             <div class="d-grid">
                                                 <button type="submit" class="btn btn-academic btn-lg py-3 shadow-sm" style="border-radius: 12px;">
-                                                    <i class="bi bi-wallet2 me-2"></i> Proceed to Secure Credo Checkout
+                                                    <i class="bi bi-wallet2 me-2"></i> Proceed to Checkout
                                                 </button>
                                             </div>
                                         </form>
@@ -779,6 +779,72 @@
                 // Toggle checkboxes styles
                 $form.find('.wants-accommodation-row').toggleClass('bg-success-subtle border-success', $form.find('.accommodation-checkbox').is(':checked'));
                 $form.find('.wants-materials-row').toggleClass('bg-success-subtle border-success', $form.find('.materials-checkbox').is(':checked'));
+            });
+
+            // Credo Inline Payment Interceptor
+            $(document).on('submit', 'form[action*="payment/checkout"]', function(e) {
+                e.preventDefault();
+                let $form = $(this);
+                let $btn = $form.find('button[type="submit"]');
+                let originalText = $btn.html();
+                
+                // Show loading spinner
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading Checkout...');
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Close any open Bootstrap modal
+                            let $modal = $form.closest('.modal');
+                            if ($modal.length > 0) {
+                                bootstrap.Modal.getInstance($modal[0]).hide();
+                            }
+
+                            // Initialize and trigger Credo Inline widget
+                            const handler = CredoWidget.setup({
+                                key: response.public_key,
+                                email: response.email,
+                                amount: response.amount_kobo,
+                                currency: "NGN",
+                                channels: ["CARD", "BANK"],
+                                reference: response.reference,
+                                callbackUrl: response.callback_url,
+                                onClose: () => {
+                                    alert("Checkout session closed. If your payment went through, please use the Re-verify button on your Payments History log.");
+                                    window.location.reload();
+                                },
+                                callBack: (res) => {
+                                    // Redirect to verification url on success
+                                    window.location.href = response.callback_url + '?transRef=' + response.reference;
+                                }
+                            });
+                            handler.openIframe();
+                        } else {
+                            alert(response.message || "Unable to initiate payment popup. Please try again.");
+                            $btn.prop('disabled', false).html(originalText);
+                        }
+                    },
+                    error: function(xhr) {
+                        let errMsg = "An error occurred during checkout setup. Please try again.";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                let parsed = JSON.parse(xhr.responseText);
+                                if (parsed.error) errMsg = parsed.error;
+                            } catch(err) {}
+                        }
+                        alert(errMsg);
+                        $btn.prop('disabled', false).html(originalText);
+                    }
+                });
             });
         });
     </script>

@@ -106,7 +106,21 @@ class PaymentController extends Controller
                 'status' => 'pending',
             ]);
 
-            // 3. Initialize Transaction with Credo Service
+            // If AJAX JSON checkout for inline SDK, return parameters
+            if ($request->expectsJson() || $request->ajax()) {
+                DB::commit();
+                Log::info("User ID {$user->id} checkout initialized for Inline popup. Ref: {$reference}");
+                return response()->json([
+                    'success' => true,
+                    'reference' => $reference,
+                    'amount_kobo' => intval(round($total * 100)),
+                    'email' => $user->email,
+                    'public_key' => env('CREDO_PUBLIC_KEY', '0PUB0857hjIP3g89AETS8tEBowvaz6Lt'),
+                    'callback_url' => route('payment.callback'),
+                ]);
+            }
+
+            // 3. Initialize Transaction with Credo Service (Fallback redirect)
             $callbackUrl = route('payment.callback');
             $response = $this->credo->initializeTransaction($total, $user->email, $reference, $callbackUrl);
 

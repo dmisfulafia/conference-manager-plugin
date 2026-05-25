@@ -353,7 +353,7 @@ The FULafia Conference platform calculates and processes registration payments b
     *   `[Checkbox] Request Hostel/Guest Lodge Accommodation (+₦X,000)`
     *   `[Checkbox] Purchase Conference Materials Bag & Program Pack (+₦Y,000)`
 *   **Live Javascript Totalizer:** A dynamic JQuery script listens to selection changes and instantly recalculates and displays the **Total Payment Amount** in real-time, utilizing CSS accent transitions (Gold highlight for categories, Academic Green glow for packages).
-*   **Credo Gateway Hand-off:** Clicking "Proceed to Secure Credo Checkout" submits the form to lock in registration parameters and process the payment.
+*   **Credo Gateway Hand-off:** Clicking "Secure Credo Checkout" submits the form to lock in registration parameters and process the payment.
 
 ---
 
