@@ -14,9 +14,9 @@ class CloudinaryService
 
     public function __construct()
     {
-        $this->cloudName = env('CLOUDINARY_CLOUD_NAME', 'dmisfulafia');
-        $this->apiKey = env('CLOUDINARY_API_KEY', '481196651998552');
-        $this->apiSecret = env('CLOUDINARY_API_SECRET', 'fcpUUvTNOKae3xJFY5sxEKc0OW0');
+        $this->cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $this->apiKey = env('CLOUDINARY_API_KEY');
+        $this->apiSecret = env('CLOUDINARY_API_SECRET');
     }
 
     /**
