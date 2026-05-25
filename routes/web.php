@@ -49,13 +49,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
+
+        $myRegistrations = $user->registrations()
+            ->with(['conference', 'attendeeType', 'submission'])
+            ->orderBy('created_at', 'desc')
+            ->get();
             
         return view('dashboard', compact(
             'ongoingConferences',
             'registrationsCount',
             'submissionsCount',
             'totalPayments',
-            'recentPayments'
+            'recentPayments',
+            'myRegistrations'
         ));
     })->name('dashboard');
 
@@ -69,6 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/payment/checkout', [\App\Http\Controllers\PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
     Route::post('/payment/reverify', [\App\Http\Controllers\PaymentController::class, 'reverify'])->name('payment.reverify');
+
+    // Structured Submissions
+    Route::post('/submissions/abstract', [\App\Http\Controllers\SubmissionController::class, 'submitAbstract'])->name('submissions.abstract');
+    Route::post('/submissions/full-paper', [\App\Http\Controllers\SubmissionController::class, 'submitFullPaper'])->name('submissions.full-paper');
 });
 
 // Protected Administration Panel (Authenticated, Verified, AND Admin/Super Admin)

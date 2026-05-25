@@ -58,4 +58,12 @@ class Registration extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    /**
+     * Get the submission associated with this registration.
+     */
+    public function submission(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Submission::class);
+    }
 }

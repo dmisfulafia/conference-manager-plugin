@@ -111,6 +111,324 @@
         </div>
     </div>
 
+    <!-- My Registered Conferences Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-4 rounded-3 bg-white" style="border: 1px solid rgba(157, 113, 38, 0.08) !important; background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);">
+                <h4 class="heading-font fw-bold text-academic-green mb-4 border-bottom pb-2 d-flex align-items-center">
+                    <i class="bi bi-bookmark-star-fill text-fulafia-gold me-2"></i> My Registered Conferences
+                </h4>
+                
+                @if($myRegistrations->isEmpty())
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-bookmark fs-1 text-muted opacity-40"></i>
+                        <p class="mt-2 fs-6 mb-2">You have not registered for any conferences yet.</p>
+                        <a href="#conferences-section" class="btn btn-academic btn-sm px-4 rounded-pill shadow-sm"><i class="bi bi-calendar-event me-1"></i> Browse Ongoing Conferences</a>
+                    </div>
+                @else
+                    <div class="row g-4">
+                        @foreach($myRegistrations as $reg)
+                            @php
+                                $conf = $reg->conference;
+                                $type = $reg->attendeeType;
+                            @endphp
+                            <div class="col-xl-6">
+                                <div class="card border rounded-3 p-4 h-100 bg-white shadow-sm" style="transition: transform 0.2s; border-color: rgba(157, 113, 38, 0.15) !important;">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <span class="badge bg-gold-light text-fulafia-gold fw-bold mb-2 px-3 py-1 rounded-pill" style="font-size: 0.8rem;">
+                                                <i class="bi bi-person-badge-fill me-1"></i> {{ $type->name }}
+                                            </span>
+                                            <h5 class="fw-bold text-academic-green mb-1">{{ $conf->title }}</h5>
+                                            <p class="text-muted small mb-0"><i class="bi bi-calendar-event me-1"></i> {{ $conf->start_date->format('M d, Y') }} - {{ $conf->end_date->format('M d, Y') }}</p>
+                                        </div>
+                                        
+                                        <div>
+                                            @if($reg->is_attendance_paid)
+                                                <span class="badge bg-success px-3 py-2 rounded-pill fw-bold">
+                                                    <i class="bi bi-patch-check-fill me-1"></i> Paid & Active
+                                                </span>
+                                            @else
+                                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold animate-pulse">
+                                                    <i class="bi bi-exclamation-circle-fill me-1"></i> Pending Payment
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-light p-3 rounded-3 mb-4 border small">
+                                        <div class="row g-2">
+                                            <div class="col-sm-6">
+                                                <strong>Registration Status:</strong> 
+                                                @if($reg->is_attendance_paid)
+                                                    <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                                                @else
+                                                    <span class="text-warning fw-bold"><i class="bi bi-clock-history"></i> Pending Checkout</span>
+                                                @endif
+                                            </div>
+                                            
+                                            @if($reg->wants_accommodation)
+                                                <div class="col-sm-6">
+                                                    <strong>Hostel Accommodation:</strong> 
+                                                    @if($reg->is_accommodation_paid)
+                                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                                                    @else
+                                                        <span class="text-warning fw-bold"><i class="bi bi-clock-history"></i> Pending</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                            
+                                            @if($reg->wants_materials)
+                                                <div class="col-sm-6">
+                                                    <strong>Materials & bag Pack:</strong> 
+                                                    @if($reg->is_materials_paid)
+                                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                                                    @else
+                                                        <span class="text-warning fw-bold"><i class="bi bi-clock-history"></i> Pending</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                            
+                                            <div class="col-12 mt-2 pt-2 border-top text-muted d-flex justify-content-between align-items-center">
+                                                <span>Registered on: {{ $reg->created_at->format('M d, Y') }}</span>
+                                                <span class="fw-bold text-academic-green">Total: ₦{{ number_format($type->fee + ($reg->wants_accommodation ? $conf->accommodation_fee : 0) + ($reg->wants_materials ? $conf->conference_material_fee : 0), 2) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-auto pt-2">
+                                        @if($reg->is_attendance_paid)
+                                            <!-- Submissions Portal Access -->
+                                            <div class="d-flex gap-2">
+                                                <a href="#submissions-section" class="btn btn-academic w-100 py-2 rounded-3 fw-bold shadow-sm">
+                                                    <i class="bi bi-file-earmark-arrow-up-fill me-2"></i> Submit Abstract / Full Paper
+                                                </a>
+                                            </div>
+                                        @else
+                                            <!-- Resume Payment Checkout -->
+                                            <form action="{{ route('payment.checkout') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="conference_id" value="{{ $conf->id }}">
+                                                <input type="hidden" name="attendee_type_id" value="{{ $type->id }}">
+                                                <input type="hidden" name="wants_accommodation" value="{{ $reg->wants_accommodation ? '1' : '0' }}">
+                                                <input type="hidden" name="wants_materials" value="{{ $reg->wants_materials ? '1' : '0' }}">
+                                                <button type="submit" class="btn btn-gold w-100 py-2 rounded-3 fw-bold shadow-sm">
+                                                    <i class="bi bi-wallet2 me-2"></i> Complete Payment (Secure Credo Checkout)
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Submissions & Abstract Portal Section -->
+    <div id="submissions-section" class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-4 rounded-3 bg-white" style="border: 1px solid rgba(157, 113, 38, 0.08) !important;">
+                <h4 class="heading-font fw-bold text-academic-green mb-3 border-bottom pb-2 d-flex align-items-center">
+                    <i class="bi bi-file-earmark-arrow-up-fill text-fulafia-gold me-2"></i> Submissions & Abstract Portal
+                </h4>
+                <p class="text-muted small mb-4">Manage your research paper uploads, monitor review feedback, and track your abstract and full-paper approval stages below.</p>
+
+                @php
+                    $paidRegs = $myRegistrations->where('is_attendance_paid', true);
+                @endphp
+
+                @if($paidRegs->isEmpty())
+                    <div class="text-center py-4 text-muted bg-light rounded-3 border" style="border-style: dashed !important;">
+                        <i class="bi bi-lock-fill fs-2 text-muted opacity-40"></i>
+                        <p class="mt-2 fs-6 mb-1 fw-bold text-dark">Submissions Portal is Locked</p>
+                        <p class="small text-muted mb-0">Please complete the payment for at least one registered conference to unlock abstract and paper submissions.</p>
+                    </div>
+                @else
+                    <div class="row g-4">
+                        @foreach($paidRegs as $reg)
+                            @php
+                                $conf = $reg->conference;
+                                $sub = $reg->submission;
+                            @endphp
+                            <div class="col-12 col-xl-6">
+                                <div class="border rounded-3 p-4 h-100 bg-white" style="border-color: rgba(157, 113, 38, 0.15) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                        <h5 class="fw-bold text-academic-green mb-0"><i class="bi bi-journal-text text-fulafia-gold me-2"></i> {{ $conf->title }}</h5>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">Active Attendee</span>
+                                    </div>
+
+                                    @if(!$sub)
+                                        <!-- No submission yet: Show Abstract Submission Form -->
+                                        <div class="bg-warning-subtle text-warning-emphasis p-3 rounded-3 mb-4 small border border-warning-subtle">
+                                            <i class="bi bi-info-circle-fill me-2"></i> <strong>Awaiting Abstract Submission:</strong> To present a paper at this conference, please upload your research abstract using the form below.
+                                        </div>
+
+                                        <form action="{{ route('submissions.abstract') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <input type="hidden" name="registration_id" value="{{ $reg->id }}">
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-dark">Research Paper Title</label>
+                                                <input type="text" name="title" class="form-control" placeholder="Enter the exact title of your paper" required>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-dark">Abstract Summary (Optional)</label>
+                                                <textarea name="abstract_text" class="form-control" rows="3" placeholder="Provide a brief text summary of your abstract..."></textarea>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-dark">Abstract Document File (Word or PDF)</label>
+                                                <input type="file" name="abstract_file" class="form-control" accept=".pdf,.doc,.docx" required>
+                                                <div class="form-text small text-muted">Supported formats: PDF, DOC, DOCX. Max file size: 20MB.</div>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-gold btn-sm w-100 py-2 fw-bold"><i class="bi bi-upload me-1"></i> Upload & Submit Abstract</button>
+                                        </form>
+
+                                    @else
+                                        <!-- Submission exists: Show lifecycle progress -->
+                                        <div class="card border-0 bg-light p-3 rounded-3 mb-4">
+                                            <h6 class="fw-bold text-dark mb-2">Paper Title: "{{ $sub->title }}"</h6>
+                                            <div class="row g-3 mt-1">
+                                                <!-- Abstract Stage Box -->
+                                                <div class="col-12 col-md-6">
+                                                    <div class="border rounded p-3 h-100 bg-white shadow-xs">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <strong class="small text-muted">STAGE 1: ABSTRACT</strong>
+                                                            @if($sub->abstract_status === 'pending')
+                                                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Under Review</span>
+                                                            @elseif($sub->abstract_status === 'approved')
+                                                                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Approved</span>
+                                                            @else
+                                                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Denied</span>
+                                                            @endif
+                                                        </div>
+
+                                                        <p class="small mb-2">
+                                                            <strong>Document:</strong> 
+                                                            <a href="{{ $sub->abstract_file_path }}" target="_blank" class="text-primary text-decoration-none fw-bold"><i class="bi bi-file-earmark-pdf-fill me-1"></i> View Abstract File</a>
+                                                        </p>
+
+                                                        @if($sub->abstract_status === 'denied')
+                                                            <div class="alert alert-danger p-2 small mb-2" role="alert">
+                                                                <strong>Rejection Feedback:</strong> {{ $sub->abstract_rejection_reason ?? 'Please revise your document guidelines and upload again.' }}
+                                                            </div>
+
+                                                            <!-- Re-submit abstract -->
+                                                            <button class="btn btn-outline-danger btn-xs w-100 py-1" data-bs-toggle="collapse" data-bs-target="#reSubmitAbstract{{ $sub->id }}">
+                                                                <i class="bi bi-arrow-repeat me-1"></i> Re-submit Revised Abstract
+                                                            </button>
+
+                                                            <div class="collapse mt-2" id="reSubmitAbstract{{ $sub->id }}">
+                                                                <form action="{{ route('submissions.abstract') }}" method="POST" enctype="multipart/form-data" class="p-2 border rounded bg-light">
+                                                                    @csrf
+                                                                    <input type="hidden" name="registration_id" value="{{ $reg->id }}">
+                                                                    <div class="mb-2">
+                                                                        <label class="form-label small fw-bold">Updated Paper Title</label>
+                                                                        <input type="text" name="title" class="form-control form-control-sm" value="{{ $sub->title }}" required>
+                                                                    </div>
+                                                                    <div class="mb-2">
+                                                                        <label class="form-label small fw-bold">Revised Document</label>
+                                                                        <input type="file" name="abstract_file" class="form-control form-control-sm" accept=".pdf,.doc,.docx" required>
+                                                                    </div>
+                                                                    <button type="submit" class="btn btn-danger btn-sm w-100 py-1 fw-bold">Upload Revisions</button>
+                                                                </form>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <!-- Full Paper Stage Box -->
+                                                <div class="col-12 col-md-6">
+                                                    <div class="border rounded p-3 h-100 bg-white shadow-xs">
+                                                        <strong class="small text-muted d-block mb-2">STAGE 2: FULL PAPER</strong>
+
+                                                        @if($sub->abstract_status !== 'approved')
+                                                            <div class="text-center py-3 text-muted small">
+                                                                <i class="bi bi-lock-fill d-block fs-5 mb-1 text-muted"></i>
+                                                                Locked until abstract approval
+                                                            </div>
+                                                        @else
+                                                            @if(!$sub->full_paper_file_path)
+                                                                <!-- Abstract approved but no full paper yet: Show upload form -->
+                                                                <span class="badge bg-gold-light text-fulafia-gold mb-2"><i class="bi bi-clock-fill me-1"></i> Awaiting Upload</span>
+                                                                
+                                                                <button class="btn btn-gold btn-xs w-100 py-1.5 fw-bold" data-bs-toggle="collapse" data-bs-target="#uploadFullPaper{{ $sub->id }}">
+                                                                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Submit Full Paper
+                                                                </button>
+
+                                                                <div class="collapse mt-2" id="uploadFullPaper{{ $sub->id }}">
+                                                                    <form action="{{ route('submissions.full-paper') }}" method="POST" enctype="multipart/form-data" class="p-2 border rounded bg-light">
+                                                                        @csrf
+                                                                        <input type="hidden" name="submission_id" value="{{ $sub->id }}">
+                                                                        <div class="mb-2">
+                                                                            <label class="form-label small fw-bold">Full Paper File (Word or PDF)</label>
+                                                                            <input type="file" name="full_paper_file" class="form-control form-control-sm" accept=".pdf,.doc,.docx" required>
+                                                                        </div>
+                                                                        <button type="submit" class="btn btn-academic btn-sm w-100 py-1 fw-bold">Upload Full Paper</button>
+                                                                    </form>
+                                                                </div>
+                                                            @else
+                                                                <!-- Full paper uploaded -->
+                                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                    @if($sub->full_paper_status === 'pending')
+                                                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Under Review</span>
+                                                                    @elseif($sub->full_paper_status === 'approved')
+                                                                        <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Approved</span>
+                                                                    @else
+                                                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Denied</span>
+                                                                    @endif
+                                                                </div>
+
+                                                                <p class="small mb-2">
+                                                                    <strong>Document:</strong> 
+                                                                    <a href="{{ $sub->full_paper_file_path }}" target="_blank" class="text-primary text-decoration-none fw-bold"><i class="bi bi-file-earmark-pdf-fill me-1"></i> View Full Paper</a>
+                                                                </p>
+
+                                                                @if($sub->full_paper_status === 'denied')
+                                                                    <div class="alert alert-danger p-2 small mb-2" role="alert">
+                                                                        <strong>Rejection Feedback:</strong> {{ $sub->full_paper_rejection_reason ?? 'Please revise your document and upload again.' }}
+                                                                    </div>
+
+                                                                    <!-- Re-submit full paper -->
+                                                                    <button class="btn btn-outline-danger btn-xs w-100 py-1" data-bs-toggle="collapse" data-bs-target="#reSubmitFullPaper{{ $sub->id }}">
+                                                                        <i class="bi bi-arrow-repeat me-1"></i> Re-submit Revised Paper
+                                                                    </button>
+
+                                                                    <div class="collapse mt-2" id="reSubmitFullPaper{{ $sub->id }}">
+                                                                        <form action="{{ route('submissions.full-paper') }}" method="POST" enctype="multipart/form-data" class="p-2 border rounded bg-light">
+                                                                            @csrf
+                                                                            <input type="hidden" name="submission_id" value="{{ $sub->id }}">
+                                                                            <div class="mb-2">
+                                                                                <label class="form-label small fw-bold">Revised Paper File</label>
+                                                                                <input type="file" name="full_paper_file" class="form-control form-control-sm" accept=".pdf,.doc,.docx" required>
+                                                                            </div>
+                                                                            <button type="submit" class="btn btn-danger btn-sm w-100 py-1 fw-bold">Upload Revisions</button>
+                                                                        </form>
+                                                                    </div>
+                                                                @endif
+                                                            @endif
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Personal Profile Info -->
     <div class="row g-4">
         <div class="col-lg-8">
