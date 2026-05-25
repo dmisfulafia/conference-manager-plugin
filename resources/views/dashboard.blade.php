@@ -213,7 +213,7 @@
                                                 <input type="hidden" name="wants_accommodation" value="{{ $reg->wants_accommodation ? '1' : '0' }}">
                                                 <input type="hidden" name="wants_materials" value="{{ $reg->wants_materials ? '1' : '0' }}">
                                                 <button type="submit" class="btn btn-gold w-100 py-2 rounded-3 fw-bold shadow-sm">
-                                                    <i class="bi bi-wallet2 me-2"></i> Complete Payment (Secure Credo Checkout)
+                                                    <i class="bi bi-wallet2 me-2"></i> Complete Payment
                                                 </button>
                                             </form>
                                         @endif
@@ -811,10 +811,7 @@
                             const handler = CredoWidget.setup({
                                 key: response.public_key,
                                 email: response.email,
-                                amount: response.amount_kobo,
-                                currency: "NGN",
-                                channels: ["CARD", "BANK"],
-                                reference: response.reference,
+                                paymentLink: response.payment_link, // Pass pre-initialized secure gateway checkout link directly
                                 callbackUrl: response.callback_url,
                                 onClose: () => {
                                     alert("Checkout session closed. If your payment went through, please use the Re-verify button on your Payments History log.");

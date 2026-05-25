@@ -39,7 +39,7 @@
     <div class="col-xl-3 col-sm-6">
         <div class="stat-card shadow-sm">
             <div class="stat-card-icon" style="background-color: #fef3c7; color: #d97706;"><i class="bi bi-cash-stack"></i></div>
-            <h6 class="text-muted small uppercase fw-bold">Revenue (Credo)</h6>
+            <h6 class="text-muted small uppercase fw-bold">Revenue </h6>
             <h2 class="heading-font fw-extrabold mt-1">₦{{ number_format($stats['total_payments'], 2) }}</h2>
             <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i> Successfully processed</p>
         </div>

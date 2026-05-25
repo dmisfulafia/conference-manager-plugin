@@ -329,10 +329,7 @@
                             const handler = CredoWidget.setup({
                                 key: response.public_key,
                                 email: response.email,
-                                amount: response.amount_kobo,
-                                currency: "NGN",
-                                channels: ["CARD", "BANK"],
-                                reference: response.reference,
+                                paymentLink: response.payment_link, // Pass pre-initialized secure gateway checkout link directly
                                 callbackUrl: response.callback_url,
                                 onClose: () => {
                                     alert("Checkout session closed. If your payment went through, please check your Dashboard panel.");
