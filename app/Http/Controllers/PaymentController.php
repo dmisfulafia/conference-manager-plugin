@@ -178,8 +178,10 @@ class PaymentController extends Controller
                         'reference' => $reference,
                         'payment_link' => $response['authorizationUrl'],
                         'email' => $user->email,
-                        'public_key' => env('CREDO_PUBLIC_KEY', '0PUB0857hjIP3g89AETS8tEBowvaz6Lt'),
+                        'amount' => (int) round($total * 100),
+                        'public_key' => env('CREDO_PUBLIC_KEY'),
                         'callback_url' => $callbackUrl,
+                        'service_code' => env('CREDO_PAYMENT_CODE'),
                     ]);
                 }
 

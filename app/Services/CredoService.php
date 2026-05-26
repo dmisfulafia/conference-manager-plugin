@@ -10,12 +10,14 @@ class CredoService
     protected $apiUrl;
     protected $publicKey;
     protected $secretKey;
+    protected $paymentCode;
 
     public function __construct()
     {
-        $this->apiUrl = env('CREDO_API_URL', 'https://api.credodemo.com');
-        $this->publicKey = env('CREDO_PUBLIC_KEY', '0PUB0857hjIP3g89AETS8tEBowvaz6Lt');
-        $this->secretKey = env('CREDO_SECRET_KEY', '0PRI0857SXLxLQm5BY5ZcBP9RZ244yQl');
+        $this->apiUrl = env('CREDO_API_URL', 'https://api.credocentral.com');
+        $this->publicKey = env('CREDO_PUBLIC_KEY', '1PUB3580LYTFvv7aSCJMEBH3ESdaYKff75eFhr');
+        $this->secretKey = env('CREDO_SECRET_KEY', '1PRI3486heaq54W2yGYGBmWj0GMt1x6yndC0wj');
+        $this->paymentCode = env('CREDO_PAYMENT_CODE', '003486YST1X8');
     }
 
     /**
@@ -33,10 +35,7 @@ class CredoService
         $amountInKobo = (int) round($amount * 100);
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => $this->publicKey,
-                'Content-Type' => 'application/json',
-            ])->withoutVerifying()->post("{$this->apiUrl}/transaction/initialize", [
+            $payload = [
                 'amount' => $amountInKobo,
                 'email' => $email,
                 'currency' => 'NGN',
@@ -44,7 +43,16 @@ class CredoService
                 'channels' => ['CARD', 'BANK'],
                 'reference' => $reference,
                 'callbackUrl' => $callbackUrl,
-            ]);
+            ];
+
+            if ($this->paymentCode) {
+                $payload['serviceCode'] = $this->paymentCode;
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => $this->publicKey,
+                'Content-Type' => 'application/json',
+            ])->withoutVerifying()->post("{$this->apiUrl}/transaction/initialize", $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
