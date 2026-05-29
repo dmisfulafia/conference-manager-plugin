@@ -262,10 +262,33 @@
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">Active Attendee</span>
                                     </div>
 
-                                    @if(!$sub)
-                                        <!-- No submission yet: Show Abstract Submission Form -->
+                                    @php
+                                        $mustPayAbstract = floatval($conf->abstract_fee) > 0;
+                                        $hasPaidAbstract = $sub && $sub->is_abstract_paid;
+                                        $canUploadAbstract = !$mustPayAbstract || $hasPaidAbstract;
+                                    @endphp
+
+                                    @if(!$canUploadAbstract)
+                                        <!-- Need to pay for abstract first -->
+                                        <div class="bg-warning-subtle text-warning-emphasis p-3 rounded-3 mb-4 small border border-warning-subtle text-center">
+                                            <i class="bi bi-credit-card-2-back-fill fs-4 d-block mb-2 text-fulafia-gold"></i>
+                                            <strong>Abstract Fee Required:</strong> To submit your abstract for this conference, an upload fee of <strong>₦{{ number_format($conf->abstract_fee, 2) }}</strong> must be paid first.
+                                        </div>
+                                        <form action="{{ route('payment.checkout.abstract') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="registration_id" value="{{ $reg->id }}">
+                                            <button type="submit" class="btn btn-gold w-100 py-2.5 fw-bold shadow-sm mb-3">
+                                                <i class="bi bi-wallet2 me-2"></i> Pay Abstract Submission Fee (₦{{ number_format($conf->abstract_fee, 2) }})
+                                            </button>
+                                        </form>
+                                    @elseif(!$sub || !$sub->abstract_file_path)
+                                        <!-- Paid or Free, but file not uploaded yet: Show Abstract Submission Form -->
                                         <div class="bg-warning-subtle text-warning-emphasis p-3 rounded-3 mb-4 small border border-warning-subtle">
-                                            <i class="bi bi-info-circle-fill me-2"></i> <strong>Awaiting Abstract Submission:</strong> To present a paper at this conference, please upload your research abstract using the form below.
+                                            <i class="bi bi-info-circle-fill me-2"></i> <strong>Awaiting Abstract Upload:</strong> 
+                                            @if($mustPayAbstract)
+                                                <span class="text-success fw-bold"><i class="bi bi-patch-check-fill"></i> Abstract Fee Paid!</span>
+                                            @endif
+                                            Please upload your research abstract using the form below.
                                         </div>
 
                                         <form action="{{ route('submissions.abstract') }}" method="POST" enctype="multipart/form-data">
@@ -274,12 +297,12 @@
                                             
                                             <div class="mb-3">
                                                 <label class="form-label small fw-bold text-dark">Research Paper Title</label>
-                                                <input type="text" name="title" class="form-control" placeholder="Enter the exact title of your paper" required>
+                                                <input type="text" name="title" class="form-control" value="{{ $sub ? $sub->title : '' }}" placeholder="Enter the exact title of your paper" required>
                                             </div>
 
                                             <div class="mb-3">
                                                 <label class="form-label small fw-bold text-dark">Abstract Summary (Optional)</label>
-                                                <textarea name="abstract_text" class="form-control" rows="3" placeholder="Provide a brief text summary of your abstract..."></textarea>
+                                                <textarea name="abstract_text" class="form-control" rows="3" placeholder="Provide a brief text summary of your abstract...">{{ $sub ? $sub->abstract_text : '' }}</textarea>
                                             </div>
 
                                             <div class="mb-3">
@@ -290,9 +313,8 @@
 
                                             <button type="submit" class="btn btn-gold btn-sm w-100 py-2 fw-bold"><i class="bi bi-upload me-1"></i> Upload & Submit Abstract</button>
                                         </form>
-
                                     @else
-                                        <!-- Submission exists: Show lifecycle progress -->
+                                        <!-- Submission exists and abstract is uploaded: Show progress -->
                                         <div class="card border-0 bg-light p-3 rounded-3 mb-4">
                                             <h6 class="fw-bold text-dark mb-2">Paper Title: "{{ $sub->title }}"</h6>
                                             <div class="row g-3 mt-1">
@@ -355,9 +377,33 @@
                                                                 Locked until abstract approval
                                                             </div>
                                                         @else
-                                                            @if(!$sub->full_paper_file_path)
-                                                                <!-- Abstract approved but no full paper yet: Show upload form -->
-                                                                <span class="badge bg-gold-light text-fulafia-gold mb-2"><i class="bi bi-clock-fill me-1"></i> Awaiting Upload</span>
+                                                            @php
+                                                                $mustPayPaper = floatval($conf->full_paper_fee) > 0;
+                                                                $hasPaidPaper = $sub->is_full_paper_paid;
+                                                                $canUploadPaper = !$mustPayPaper || $hasPaidPaper;
+                                                            @endphp
+
+                                                            @if(!$canUploadPaper)
+                                                                <!-- Must pay for full paper first -->
+                                                                <div class="text-center py-2">
+                                                                    <span class="badge bg-warning text-dark mb-2"><i class="bi bi-credit-card-fill me-1"></i> Fee Required</span>
+                                                                    <p class="small text-muted mb-2">Full paper submission fee: <strong>₦{{ number_format($conf->full_paper_fee, 2) }}</strong></p>
+                                                                    <form action="{{ route('payment.checkout.full-paper') }}" method="POST">
+                                                                        @csrf
+                                                                        <input type="hidden" name="submission_id" value="{{ $sub->id }}">
+                                                                        <button type="submit" class="btn btn-gold btn-xs w-100 py-2 fw-bold shadow-sm">
+                                                                            <i class="bi bi-wallet2 me-1"></i> Pay Full Paper Fee (₦{{ number_format($conf->full_paper_fee, 2) }})
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            @elseif(!$sub->full_paper_file_path)
+                                                                <!-- Abstract approved and paid/free but no full paper yet: Show upload form -->
+                                                                <span class="badge bg-gold-light text-fulafia-gold mb-2">
+                                                                    @if($mustPayPaper)
+                                                                        <i class="bi bi-patch-check-fill me-1 text-success"></i> Paid! 
+                                                                    @endif
+                                                                    Awaiting Upload
+                                                                </span>
                                                                 
                                                                 <button class="btn btn-gold btn-xs w-100 py-1.5 fw-bold" data-bs-toggle="collapse" data-bs-target="#uploadFullPaper{{ $sub->id }}">
                                                                     <i class="bi bi-cloud-arrow-up-fill me-1"></i> Submit Full Paper

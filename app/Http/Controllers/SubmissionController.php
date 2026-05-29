@@ -42,6 +42,14 @@ class SubmissionController extends Controller
             return back()->with('error', 'You must complete your conference registration payment before submitting an abstract.');
         }
 
+        $conf = $reg->conference;
+        $submission = $reg->submission;
+        $mustPayAbstract = floatval($conf->abstract_fee) > 0;
+
+        if ($mustPayAbstract && (!$submission || !$submission->is_abstract_paid)) {
+            return back()->with('error', 'You must pay the abstract submission fee before uploading your abstract.');
+        }
+
         try {
             // Upload file to Cloudinary under the 'abstract' folder
             $fileUrl = $this->cloudinary->upload($request->file('abstract_file'), 'abstract');
@@ -54,7 +62,7 @@ class SubmissionController extends Controller
                     'abstract_text' => $request->abstract_text,
                     'abstract_file_path' => $fileUrl,
                     'abstract_status' => 'pending',
-                    'is_abstract_paid' => true, // Automatically paid/free for active attendees
+                    'is_abstract_paid' => true, // Verified paid or free
                 ]
             );
 
@@ -89,6 +97,13 @@ class SubmissionController extends Controller
             return back()->with('error', 'You can only upload a full paper after your abstract has been approved.');
         }
 
+        $conf = $reg->conference;
+        $mustPayPaper = floatval($conf->full_paper_fee) > 0;
+
+        if ($mustPayPaper && !$submission->is_full_paper_paid) {
+            return back()->with('error', 'You must pay the full paper submission fee before uploading your full paper.');
+        }
+
         try {
             // Upload file to Cloudinary under the 'full-paper-submissions' folder
             $fileUrl = $this->cloudinary->upload($request->file('full_paper_file'), 'full-paper-submissions');
@@ -97,7 +112,7 @@ class SubmissionController extends Controller
             $submission->update([
                 'full_paper_file_path' => $fileUrl,
                 'full_paper_status' => 'pending',
-                'is_full_paper_paid' => true, // Automatically paid/free
+                'is_full_paper_paid' => true, // Verified paid or free
             ]);
 
             Log::info("Full Paper Submitted for Submission ID {$submission->id} by User ID " . Auth::id());

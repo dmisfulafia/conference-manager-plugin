@@ -239,6 +239,9 @@
             <li class="sidebar-item {{ Request::routeIs('admin.conferences') ? 'active' : '' }}">
                 <a href="{{ route('admin.conferences') }}"><i class="bi bi-journal-bookmark-fill"></i> Conferences</a>
             </li>
+            <li class="sidebar-item {{ Request::routeIs('admin.submissions') ? 'active' : '' }}">
+                <a href="{{ route('admin.submissions') }}"><i class="bi bi-file-earmark-arrow-up-fill"></i> Submissions</a>
+            </li>
             <li class="sidebar-item {{ Request::routeIs('admin.payments') ? 'active' : '' }}">
                 <a href="{{ route('admin.payments') }}"><i class="bi bi-wallet2"></i> Payments Log</a>
             </li>

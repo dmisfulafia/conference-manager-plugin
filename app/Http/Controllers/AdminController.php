@@ -177,6 +177,8 @@ class AdminController extends Controller
             'status' => 'required|string|in:ongoing,past',
             'accommodation_fee' => 'required|numeric|min:0',
             'conference_material_fee' => 'required|numeric|min:0',
+            'abstract_fee' => 'required|numeric|min:0',
+            'full_paper_fee' => 'required|numeric|min:0',
             
             // Category attendee fees
             'researchers_fee' => 'required|numeric|min:0',
@@ -199,6 +201,8 @@ class AdminController extends Controller
                 'status' => $request->status,
                 'accommodation_fee' => $request->accommodation_fee,
                 'conference_material_fee' => $request->conference_material_fee,
+                'abstract_fee' => $request->abstract_fee,
+                'full_paper_fee' => $request->full_paper_fee,
             ]);
 
             // Store the 6 specific attendee categories
@@ -245,6 +249,8 @@ class AdminController extends Controller
             'status' => 'required|string|in:ongoing,past',
             'accommodation_fee' => 'required|numeric|min:0',
             'conference_material_fee' => 'required|numeric|min:0',
+            'abstract_fee' => 'required|numeric|min:0',
+            'full_paper_fee' => 'required|numeric|min:0',
             
             // Category attendee fees
             'researchers_fee' => 'required|numeric|min:0',
@@ -267,6 +273,8 @@ class AdminController extends Controller
                 'status' => $request->status,
                 'accommodation_fee' => $request->accommodation_fee,
                 'conference_material_fee' => $request->conference_material_fee,
+                'abstract_fee' => $request->abstract_fee,
+                'full_paper_fee' => $request->full_paper_fee,
             ]);
 
             // Update the 6 specific attendee categories
@@ -356,5 +364,58 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.payments', compact('payments'));
+    }
+
+    /**
+     * Show all submissions across the portal.
+     */
+    public function submissions()
+    {
+        $submissions = \App\Models\Submission::with(['registration.user', 'registration.conference'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.submissions', compact('submissions'));
+    }
+
+    /**
+     * Review (approve/deny) abstract or full paper submissions.
+     */
+    public function reviewSubmission(Request $request, \App\Models\Submission $submission)
+    {
+        $request->validate([
+            'type' => 'required|string|in:abstract,full_paper',
+            'status' => 'required|string|in:approved,denied',
+            'rejection_reason' => 'nullable|string|required_if:status,denied',
+        ]);
+
+        $type = $request->type;
+        $status = $request->status;
+        $reason = $request->rejection_reason;
+
+        try {
+            if ($type === 'abstract') {
+                $submission->update([
+                    'abstract_status' => $status,
+                    'abstract_rejection_reason' => $status === 'denied' ? $reason : null,
+                ]);
+                
+                $statusText = $status === 'approved' ? 'approved' : 'denied';
+                Log::info("Admin (ID: " . Auth::id() . ") {$statusText} abstract for Submission ID {$submission->id}");
+                return back()->with('success', "Abstract has been successfully {$statusText}!");
+            } else {
+                $submission->update([
+                    'full_paper_status' => $status,
+                    'full_paper_rejection_reason' => $status === 'denied' ? $reason : null,
+                ]);
+
+                $statusText = $status === 'approved' ? 'approved' : 'denied';
+                Log::info("Admin (ID: " . Auth::id() . ") {$statusText} full paper for Submission ID {$submission->id}");
+                return back()->with('success', "Full paper has been successfully {$statusText}!");
+            }
+        } catch (\Exception $e) {
+            Log::error("Submission review error: " . $e->getMessage());
+            return back()->with('error', 'An error occurred while reviewing the submission: ' . $e->getMessage());
+        }
     }
 }

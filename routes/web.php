@@ -95,6 +95,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Payment Gateway & Credo Checkout
     Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payment/checkout', [\App\Http\Controllers\PaymentController::class, 'checkout'])->name('payment.checkout');
+    Route::post('/payment/checkout/abstract', [\App\Http\Controllers\PaymentController::class, 'checkoutAbstract'])->name('payment.checkout.abstract');
+    Route::post('/payment/checkout/full-paper', [\App\Http\Controllers\PaymentController::class, 'checkoutFullPaper'])->name('payment.checkout.full-paper');
     Route::get('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
     Route::post('/payment/reverify', [\App\Http\Controllers\PaymentController::class, 'reverify'])->name('payment.reverify');
     Route::get('/payment/receipt/{payment}', [\App\Http\Controllers\PaymentController::class, 'receipt'])->name('payment.receipt');
@@ -132,4 +134,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
 
     // Manage payments log
     Route::get('/payments', [\App\Http\Controllers\AdminController::class, 'payments'])->name('admin.payments');
+
+    // Manage submissions
+    Route::get('/submissions', [\App\Http\Controllers\AdminController::class, 'submissions'])->name('admin.submissions');
+    Route::post('/submissions/{submission}/review', [\App\Http\Controllers\AdminController::class, 'reviewSubmission'])->name('admin.submissions.review');
 });

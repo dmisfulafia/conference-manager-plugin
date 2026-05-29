@@ -22,6 +22,8 @@
                 <th>Status</th>
                 <th>Accommodation Fee</th>
                 <th>Material Fee</th>
+                <th>Abstract Fee</th>
+                <th>Full Paper Fee</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -47,6 +49,8 @@
                     </td>
                     <td class="font-monospace">₦{{ number_format($conf->accommodation_fee, 2) }}</td>
                     <td class="font-monospace">₦{{ number_format($conf->conference_material_fee, 2) }}</td>
+                    <td class="font-monospace">₦{{ number_format($conf->abstract_fee, 2) }}</td>
+                    <td class="font-monospace">₦{{ number_format($conf->full_paper_fee, 2) }}</td>
                     <td>
                         <div class="d-flex gap-2">
                             <!-- Edit Button -->
@@ -115,6 +119,16 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label fw-semibold">Conference Material Fee (₦)</label>
                                         <input type="number" step="0.01" name="conference_material_fee" class="form-control" value="{{ $conf->conference_material_fee }}" required min="0">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Abstract Submission Fee (₦)</label>
+                                        <input type="number" step="0.01" name="abstract_fee" class="form-control" value="{{ $conf->abstract_fee }}" required min="0">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Full Paper Submission Fee (₦)</label>
+                                        <input type="number" step="0.01" name="full_paper_fee" class="form-control" value="{{ $conf->full_paper_fee }}" required min="0">
                                     </div>
                                 </div>
 
@@ -211,6 +225,16 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">Conference Material Fee (₦)</label>
                         <input type="number" step="0.01" name="conference_material_fee" class="form-control" required value="0" min="0">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Abstract Submission Fee (₦)</label>
+                        <input type="number" step="0.01" name="abstract_fee" class="form-control" required value="0" min="0">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Full Paper Submission Fee (₦)</label>
+                        <input type="number" step="0.01" name="full_paper_fee" class="form-control" required value="0" min="0">
                     </div>
                 </div>
 

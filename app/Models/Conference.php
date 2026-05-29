@@ -26,6 +26,8 @@ class Conference extends Model
         'venue',
         'accommodation_fee',
         'conference_material_fee',
+        'abstract_fee',
+        'full_paper_fee',
     ];
 
     /**
@@ -40,6 +42,8 @@ class Conference extends Model
             'end_date' => 'date',
             'accommodation_fee' => 'decimal:2',
             'conference_material_fee' => 'decimal:2',
+            'abstract_fee' => 'decimal:2',
+            'full_paper_fee' => 'decimal:2',
         ];
     }
 

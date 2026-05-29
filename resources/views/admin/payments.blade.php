@@ -84,8 +84,8 @@
                     <option value="attendance">Attendance Registration</option>
                     <option value="accommodation">Hostel Accommodation</option>
                     <option value="materials">Conference Materials</option>
-                    <option value="abstract">Abstract Submission</option>
-                    <option value="full_paper">Full Paper Fee</option>
+                    <option value="abstract_submission">Abstract Submission</option>
+                    <option value="full_paper_submission">Full Paper Fee</option>
                 </select>
             </div>
 

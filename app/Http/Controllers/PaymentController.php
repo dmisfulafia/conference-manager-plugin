@@ -7,6 +7,7 @@ use App\Models\Conference;
 use App\Models\AttendeeType;
 use App\Models\Registration;
 use App\Models\Payment;
+use App\Models\Submission;
 use App\Services\CredoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -308,6 +309,125 @@ class PaymentController extends Controller
     }
 
     /**
+     * Initialize payment for Abstract Submission and redirect to Credo Checkout.
+     */
+    public function checkoutAbstract(Request $request)
+    {
+        $request->validate([
+            'registration_id' => 'required|exists:registrations,id',
+        ]);
+
+        $user = Auth::user();
+        $reg = Registration::findOrFail($request->registration_id);
+
+        if ($reg->user_id !== $user->id) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $conf = $reg->conference;
+        $total = floatval($conf->abstract_fee);
+
+        if ($total <= 0) {
+            return back()->with('error', 'Abstract submission is free for this conference.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Find or create submission record so we have a placeholder for the payment
+            $submission = Submission::firstOrCreate(
+                ['registration_id' => $reg->id],
+                [
+                    'title' => 'Pending Abstract Upload',
+                    'is_abstract_paid' => false,
+                    'abstract_status' => 'pending',
+                ]
+            );
+
+            $reference = 'ABS_' . time() . '_' . rand(1000, 9999);
+
+            $payment = Payment::create([
+                'user_id' => $user->id,
+                'registration_id' => $reg->id,
+                'reference' => $reference,
+                'amount' => $total,
+                'purpose' => 'abstract_submission',
+                'status' => 'pending',
+            ]);
+
+            $callbackUrl = route('payment.callback');
+            $response = $this->credo->initializeTransaction($total, $user->email, $reference, $callbackUrl);
+
+            if ($response && isset($response['authorizationUrl'])) {
+                DB::commit();
+                return redirect()->away($response['authorizationUrl']);
+            }
+
+            throw new \Exception("Credo payment initiation returned an invalid response.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Abstract Checkout Error: " . $e->getMessage());
+            return back()->with('error', 'Unable to initiate checkout transaction. Please try again later.');
+        }
+    }
+
+    /**
+     * Initialize payment for Full Paper Submission and redirect to Credo Checkout.
+     */
+    public function checkoutFullPaper(Request $request)
+    {
+        $request->validate([
+            'submission_id' => 'required|exists:submissions,id',
+        ]);
+
+        $user = Auth::user();
+        $submission = Submission::findOrFail($request->submission_id);
+        $reg = $submission->registration;
+
+        if ($reg->user_id !== $user->id) {
+            abort(403, 'Unauthorized.');
+        }
+
+        if ($submission->abstract_status !== 'approved') {
+            return back()->with('error', 'You can only pay for full paper after abstract approval.');
+        }
+
+        $conf = $reg->conference;
+        $total = floatval($conf->full_paper_fee);
+
+        if ($total <= 0) {
+            return back()->with('error', 'Full paper submission is free for this conference.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $reference = 'PAP_' . time() . '_' . rand(1000, 9999);
+
+            $payment = Payment::create([
+                'user_id' => $user->id,
+                'registration_id' => $reg->id,
+                'reference' => $reference,
+                'amount' => $total,
+                'purpose' => 'full_paper_submission',
+                'status' => 'pending',
+            ]);
+
+            $callbackUrl = route('payment.callback');
+            $response = $this->credo->initializeTransaction($total, $user->email, $reference, $callbackUrl);
+
+            if ($response && isset($response['authorizationUrl'])) {
+                DB::commit();
+                return redirect()->away($response['authorizationUrl']);
+            }
+
+            throw new \Exception("Credo payment initiation returned an invalid response.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Full Paper Checkout Error: " . $e->getMessage());
+            return back()->with('error', 'Unable to initiate checkout transaction. Please try again later.');
+        }
+    }
+
+    /**
      * Helper to atomically set payment to successful and update registration payment flags.
      */
     protected function markPaymentAsSuccessful(Payment $payment, array $verifyData)
@@ -319,18 +439,28 @@ class PaymentController extends Controller
                 'gateway_response' => $verifyData,
             ]);
 
-            // Update registration payment indicators
+            // Update registration / submission payment indicators
             if ($payment->registration) {
                 $reg = $payment->registration;
 
-                // Grant indicators
-                $reg->update([
-                    'is_attendance_paid' => true,
-                    'is_accommodation_paid' => $reg->wants_accommodation ? true : $reg->is_accommodation_paid,
-                    'is_materials_paid' => $reg->wants_materials ? true : $reg->is_materials_paid,
-                ]);
+                if ($payment->purpose === 'abstract_submission') {
+                    $submission = $reg->submission ?: new Submission(['registration_id' => $reg->id]);
+                    $submission->is_abstract_paid = true;
+                    $submission->save();
+                } elseif ($payment->purpose === 'full_paper_submission') {
+                    if ($reg->submission) {
+                        $reg->submission->update(['is_full_paper_paid' => true]);
+                    }
+                } else {
+                    // Grant indicators for attendance
+                    $reg->update([
+                        'is_attendance_paid' => true,
+                        'is_accommodation_paid' => $reg->wants_accommodation ? true : $reg->is_accommodation_paid,
+                        'is_materials_paid' => $reg->wants_materials ? true : $reg->is_materials_paid,
+                    ]);
+                }
 
-                Log::info("Registration ID {$reg->id} marked active. Attendance paid.");
+                Log::info("Registration ID {$reg->id} processed successful payment. Purpose: {$payment->purpose}.");
             }
         });
     }
