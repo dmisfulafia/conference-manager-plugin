@@ -163,7 +163,7 @@
 
                                         <div class="d-grid">
                                             <button type="submit" class="btn btn-academic btn-lg py-3 shadow-sm" style="border-radius: 12px;">
-                                                <i class="bi bi-wallet2 me-2"></i> Proceed to Secure Credo Checkout
+                                                <i class="bi bi-wallet2 me-2"></i> Proceed to Checkout
                                             </button>
                                         </div>
                                     </form>

@@ -230,9 +230,11 @@ class PaymentController extends Controller
         $verifyData = $this->credo->verifyTransaction($reference);
 
         if ($verifyData) {
-            $gatewayStatus = strtolower($verifyData['status'] ?? $verifyData['businessStatus'] ?? 'failed');
+            // According to Credo API specifications, a status code of 0 indicates a successful payment.
+            // Any string/number that is not exactly 0 or '0' (e.g. '00', '1', 'true', etc.) is considered failed.
+            $gatewayStatus = isset($verifyData['status']) ? $verifyData['status'] : ($verifyData['businessStatus'] ?? null);
             
-            if ($gatewayStatus === 'successful' || $gatewayStatus === 'success') {
+            if ($gatewayStatus !== null && ($gatewayStatus === 0 || $gatewayStatus === '0')) {
                 $this->markPaymentAsSuccessful($payment, $verifyData);
                 return view('payment_status', ['status' => 'success']);
             }
@@ -284,9 +286,11 @@ class PaymentController extends Controller
         $verifyData = $this->credo->verifyTransaction($reference);
 
         if ($verifyData) {
-            $gatewayStatus = strtolower($verifyData['status'] ?? $verifyData['businessStatus'] ?? 'failed');
+            // According to Credo API specifications, a status code of 0 indicates a successful payment.
+            // Any string/number that is not exactly 0 or '0' (e.g. '00', '1', 'true', etc.) is considered failed.
+            $gatewayStatus = isset($verifyData['status']) ? $verifyData['status'] : ($verifyData['businessStatus'] ?? null);
 
-            if ($gatewayStatus === 'successful' || $gatewayStatus === 'success') {
+            if ($gatewayStatus !== null && ($gatewayStatus === 0 || $gatewayStatus === '0')) {
                 $this->markPaymentAsSuccessful($payment, $verifyData);
                 return back()->with('success', 'Transaction successfully verified! The registration has been activated.');
             }
@@ -296,7 +300,8 @@ class PaymentController extends Controller
                 'gateway_response' => $verifyData,
             ]);
 
-            return back()->with('error', "Transaction status is still: " . strtoupper($gatewayStatus) . ". No value was granted.");
+            $displayStatus = is_scalar($gatewayStatus) ? (string)$gatewayStatus : 'failed';
+            return back()->with('error', "Transaction status is still: " . strtoupper($displayStatus) . ". No value was granted.");
         }
 
         return back()->with('error', 'Unable to verify payment status from Credo API. Please confirm your reference is correct.');
