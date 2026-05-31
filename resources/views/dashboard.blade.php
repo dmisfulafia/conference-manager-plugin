@@ -872,36 +872,31 @@
                                 bootstrap.Modal.getInstance($modal[0]).hide();
                             }
 
-                            // Initialize Credo Inline Widget
-                            const handler = CredoWidget.setup({
-                                key: response.public_key,
-                                email: response.email,
-                                amount: response.amount,
-                                currency: 'NGN',
-                                channels: ['CARD', 'BANK'],
-                                reference: response.reference,
-                                serviceCode: response.service_code,
-                                callbackUrl: response.callback_url,
-                                callBack: function(res) {
-                                    console.log("Payment complete:", res);
-                                    let successUrl = response.callback_url + '?reference=' + response.reference;
-                                    window.location.href = successUrl;
-                                },
-                                onClose: function() {
-                                    console.log("Payment modal closed");
+                            // Open secure centered popup window pointing directly to the payment link
+                            let width = 500;
+                            let height = 700;
+                            let left = (screen.width / 2) - (width / 2);
+                            let top = (screen.height / 2) - (height / 2);
+                            
+                            let popup = window.open(response.payment_link, 'CredoCheckout', 'width=' + width + ',height=' + height + ',top=' + top + ',left=' + left + ',resizable=yes,scrollbars=yes,status=yes');
+                            
+                            $btn.html('<i class="bi bi-hourglass-split animate-pulse"></i> Awaiting Payment...');
+
+                            // Track popup state
+                            let timer = setInterval(function() {
+                                if (popup.closed) {
+                                    clearInterval(timer);
                                     window.location.reload();
                                 }
-                            });
-
-                            handler.openIframe();
-                            $btn.html('<i class="bi bi-hourglass-split animate-pulse"></i> Awaiting Payment...');
+                            }, 1500);
                         } else {
-                            alert(response.message || "Unable to initiate payment. Please try again.");
+                            alert(response.message || "Unable to initiate payment popup. Please try again.");
                             $btn.prop('disabled', false).html(originalText);
                         }
                     },
                     error: function(xhr) {
                         let errMsg = "An error occurred during checkout setup. Please try again.";
+                        console.log(xhr.responseJSON)
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errMsg = xhr.responseJSON.message;
                         } else if (xhr.responseText) {

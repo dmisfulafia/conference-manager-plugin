@@ -359,6 +359,20 @@ class PaymentController extends Controller
 
             if ($response && isset($response['authorizationUrl'])) {
                 DB::commit();
+
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'reference' => $reference,
+                        'payment_link' => $response['authorizationUrl'],
+                        'email' => $user->email,
+                        'amount' => (int) round($total * 100),
+                        'public_key' => env('CREDO_PUBLIC_KEY'),
+                        'callback_url' => $callbackUrl,
+                        'service_code' => env('CREDO_PAYMENT_CODE'),
+                    ]);
+                }
+
                 return redirect()->away($response['authorizationUrl']);
             }
 
@@ -366,6 +380,12 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Abstract Checkout Error: " . $e->getMessage());
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to initiate checkout transaction: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'Unable to initiate checkout transaction. Please try again later.');
         }
     }
@@ -400,6 +420,7 @@ class PaymentController extends Controller
 
         DB::beginTransaction();
         try {
+
             $reference = 'PAP_' . time() . '_' . rand(1000, 9999);
 
             $payment = Payment::create([
@@ -413,9 +434,23 @@ class PaymentController extends Controller
 
             $callbackUrl = route('payment.callback');
             $response = $this->credo->initializeTransaction($total, $user->email, $reference, $callbackUrl);
-
+        
             if ($response && isset($response['authorizationUrl'])) {
                 DB::commit();
+
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'reference' => $reference,
+                        'payment_link' => $response['authorizationUrl'],
+                        'email' => $user->email,
+                        'amount' => (int) round($total * 100),
+                        'public_key' => env('CREDO_PUBLIC_KEY'),
+                        'callback_url' => $callbackUrl,
+                        'service_code' => env('CREDO_PAYMENT_CODE'),
+                    ]);
+                }
+        
                 return redirect()->away($response['authorizationUrl']);
             }
 
@@ -423,6 +458,12 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Full Paper Checkout Error: " . $e->getMessage());
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to initiate checkout transaction: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'Unable to initiate checkout transaction. Please try again later.');
         }
     }
