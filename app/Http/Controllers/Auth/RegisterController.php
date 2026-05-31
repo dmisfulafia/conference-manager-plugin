@@ -79,12 +79,21 @@ class RegisterController extends Controller
             // Log code for easy developer sandbox retrieval
             Log::info("Verification OTP code generated for User: {$user->email} (ID: {$user->id}). OTP Code: {$code}");
 
+            // Dispatch Email Verification Mailable
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)
+                    ->send(new \App\Mail\VerifyEmailCode($user, (string) $code));
+                Log::info("Sent Verification Email to user {$user->email} containing OTP code");
+            } catch (\Exception $mailEx) {
+                Log::error("Failed to send Verification email to {$user->email}: " . $mailEx->getMessage());
+            }
+
             // Automatically log in the user
             Auth::login($user);
 
-            // Flash the code for extremely easy local development testing!
+            // Notify user without exposing OTP code in frontend flash message
             return redirect()->route('verification.notice')
-                ->with('success', 'Registration successful! For easy testing, your OTP is: ' . $code);
+                ->with('success', 'Registration successful! A 6-digit verification code has been sent to your registered email address.');
 
         } catch (\Exception $e) {
             DB::rollBack();

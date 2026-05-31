@@ -402,7 +402,6 @@ class AdminController extends Controller
                 
                 $statusText = $status === 'approved' ? 'approved' : 'denied';
                 Log::info("Admin (ID: " . Auth::id() . ") {$statusText} abstract for Submission ID {$submission->id}");
-                return back()->with('success', "Abstract has been successfully {$statusText}!");
             } else {
                 $submission->update([
                     'full_paper_status' => $status,
@@ -411,8 +410,31 @@ class AdminController extends Controller
 
                 $statusText = $status === 'approved' ? 'approved' : 'denied';
                 Log::info("Admin (ID: " . Auth::id() . ") {$statusText} full paper for Submission ID {$submission->id}");
-                return back()->with('success', "Full paper has been successfully {$statusText}!");
             }
+
+            // Dispatch Email Notification for submission review update
+            $submission = $submission->fresh(['registration.user', 'registration.conference']);
+            if ($submission && $submission->registration) {
+                $user = $submission->registration->user;
+                $conference = $submission->registration->conference;
+
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)
+                        ->send(new \App\Mail\SubmissionReviewed(
+                            $user,
+                            $conference,
+                            $submission,
+                            $type,
+                            $status,
+                            $reason
+                        ));
+                    Log::info("Sent Submission Reviewed Email to user {$user->email} for Submission ID {$submission->id} ({$type} => {$status})");
+                } catch (\Exception $mailEx) {
+                    Log::error("Failed to send Submission Reviewed email for Submission ID {$submission->id}: " . $mailEx->getMessage());
+                }
+            }
+
+            return back()->with('success', "Submission has been successfully {$statusText}!");
         } catch (\Exception $e) {
             Log::error("Submission review error: " . $e->getMessage());
             return back()->with('error', 'An error occurred while reviewing the submission: ' . $e->getMessage());

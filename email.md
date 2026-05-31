@@ -163,3 +163,71 @@ MAIL_FROM_NAME="FULafia Conference Portal"
 * **Strict SSL Verification Bypassing**: To prevent local environment network handshakes or certificate validation bugs from failing critical email dispatches, the transport utilizes `Http::withoutVerifying()`. In a dedicated production setting, standard certificate pinning can be safely toggled back.
 * **Secure Key Extraction**: The secret key and macro URL are stored strictly in the `.env` file instead of hardcoded in the codebase, preventing sensitive credentials from being leaked to version control repositories.
 * **Graceful Error Routing**: In the event that Google Apps Script throttles requests or hits standard quota limits, the error will be beautifully captured inside the Laravel log file (`storage/logs/laravel.log`) with comprehensive diagnostic details.
+
+---
+
+## 📬 Transactional Email Workflows & Rich HTML Templates
+
+To deliver a premium attendee and author experience, we avoided low-fidelity plain-text emails. Instead, we designed **responsive, premium HTML templates** styled with the **Federal University of Lafia (FULafia) branding** (Academic Forest Green, Deep Gold, clear detail summaries, clean grid tables, and bold Call-To-Action buttons).
+
+Here are the five critical system workflows that trigger automatic HTML email notifications:
+
+### 1. Conference Registration & Payment Confirmation
+* **Trigger Event**: Complete and successful processing of the attendee conference registration fee (in `PaymentController@markPaymentAsSuccessful`).
+* **Mailable Class**: `App\Mail\RegistrationConfirmed`
+* **Blade Template**: `resources/views/emails/registration_confirmed.blade.php`
+* **Key Content Included**:
+  * Personalized greeting (Title, First Name, Last Name).
+  * Conference title and receipt summary.
+  * Unique transaction gateway reference ID.
+  * Selected add-ons (Accommodation and Conference Materials selection status).
+  * Breakdown of total fee paid.
+  * Action button directing the user to their portal dashboard to begin abstract submissions.
+
+### 2. Abstract Proposal Submission Receipt
+* **Trigger Event**: Successful upload of a research paper abstract by the attendee (in `SubmissionController@submitAbstract`).
+* **Mailable Class**: `App\Mail\AbstractSubmitted`
+* **Blade Template**: `resources/views/emails/abstract_submitted.blade.php`
+* **Key Content Included**:
+  * Submission confirmation greeting.
+  * Abstract title and target conference.
+  * Status badge indicating "Under Review" standing.
+  * Detailed outline of the next reviewer stages.
+
+### 3. Full Paper Manuscript Submission Receipt
+* **Trigger Event**: Successful payment verification and manuscript upload of the full-length paper by the author (in `SubmissionController@submitFullPaper`).
+* **Mailable Class**: `App\Mail\FullPaperSubmitted`
+* **Blade Template**: `resources/views/emails/full_paper_submitted.blade.php`
+* **Key Content Included**:
+  * Document verification message.
+  * Complete full paper title and target conference.
+  * Active review pipeline indicators.
+
+### 4. Abstract Review Moderation Decision (Approved / Denied)
+* **Trigger Event**: The academic review board approves or requests a revision for an abstract proposal (in `AdminController@reviewSubmission` when type is `abstract`).
+* **Mailable Class**: `App\Mail\SubmissionReviewed`
+* **Blade Template**: `resources/views/emails/submission_reviewed.blade.php`
+* **Key Content Included**:
+  * Evaluation results with color-coded status badges:
+    * **Approved**: Green check badge guiding authors to proceed to full paper payment and document uploading.
+    * **Denied / Revision Required**: Red cross badge showing full reviewer feedback/remarks and instructions on revising the proposal.
+
+### 5. Full Paper Review Moderation Decision (Approved / Denied)
+* **Trigger Event**: The committee evaluates the complete paper manuscript and marks it as accepted or returned for revisions (in `AdminController@reviewSubmission` when type is `full_paper`).
+* **Mailable Class**: `App\Mail\SubmissionReviewed`
+* **Blade Template**: `resources/views/emails/submission_reviewed.blade.php`
+* **Key Content Included**:
+  * Paper acceptance status:
+    * **Approved**: Official invitation guiding the speaker on scheduling details, certificate downloading, and presentation prep.
+    * **Denied / Revision Required**: Specific peer-review notes detailing standard structural corrections or formatting updates required.
+
+### 6. Email Verification & OTP Delivery
+* **Trigger Event**: A new user registers for a member account (in `RegisterController@register`) or manually requests a new validation code (in `LoginController@resendVerificationCode`).
+* **Mailable Class**: `App\Mail\VerifyEmailCode`
+* **Blade Template**: `resources/views/emails/verify_email_code.blade.php`
+* **Key Content Included**:
+  * Clean, high-security transaction layout.
+  * Big, prominent bold 6-digit one-time password (OTP) verification code.
+  * Security disclaimer and code expiration rules (expires in 60 minutes).
+
+

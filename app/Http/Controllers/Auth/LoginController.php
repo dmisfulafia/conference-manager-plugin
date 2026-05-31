@@ -153,7 +153,16 @@ class LoginController extends Controller
 
         Log::info("Verification OTP code RESENT for User: {$user->email} (ID: {$user->id}). OTP Code: {$code}");
 
-        return back()->with('success', 'A new verification code has been generated. For easy testing, your new OTP is: ' . $code);
+        // Dispatch Email Verification Mailable
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)
+                ->send(new \App\Mail\VerifyEmailCode($user, (string) $code));
+            Log::info("Sent Resent Verification Email to user {$user->email} containing OTP code");
+        } catch (\Exception $mailEx) {
+            Log::error("Failed to send Resent Verification email to {$user->email}: " . $mailEx->getMessage());
+        }
+
+        return back()->with('success', 'A new verification code has been generated and sent to your registered email address.');
     }
 
     /**

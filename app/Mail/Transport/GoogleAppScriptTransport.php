@@ -33,6 +33,8 @@ class GoogleAppScriptTransport extends AbstractTransport
         // Get HTML body or fallback to text body
         $body = $email->getHtmlBody() ?? $email->getTextBody();
 
+        Log::info("Sending email via GAS. URL: " . $this->url . " | Secret Key: " . $this->secretKey . " | To: " . $to . " | Subject: " . $subject . " | Body length: " . strlen($body) . " | Body: " . substr($body, 0, 200));
+
         try {
             $response = Http::withoutVerifying()
                 ->post($this->url, [
@@ -41,6 +43,8 @@ class GoogleAppScriptTransport extends AbstractTransport
                     'subject' => $subject,
                     'body' => $body,
                 ]);
+
+            Log::info("GAS response status: " . $response->status() . " | Body: " . $response->body());
 
             if ($response->successful()) {
                 $status = $response->json();

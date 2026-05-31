@@ -66,6 +66,19 @@ class SubmissionController extends Controller
                 ]
             );
 
+            // Dispatch Abstract Submitted Email
+            try {
+                \Illuminate\Support\Facades\Mail::to($reg->user->email)
+                    ->send(new \App\Mail\AbstractSubmitted(
+                        $reg->user,
+                        $conf,
+                        $submission
+                    ));
+                Log::info("Sent Abstract Submission Email to user {$reg->user->email} for Submission ID {$submission->id}");
+            } catch (\Exception $mailEx) {
+                Log::error("Failed to send Abstract Submission email for Submission ID {$submission->id}: " . $mailEx->getMessage());
+            }
+
             Log::info("Abstract Submitted for Reg ID {$reg->id} by User ID " . Auth::id());
             return back()->with('success', 'Your abstract has been successfully submitted! Our review board will notify you once verified.');
         } catch (\Exception $e) {
@@ -114,6 +127,19 @@ class SubmissionController extends Controller
                 'full_paper_status' => 'pending',
                 'is_full_paper_paid' => true, // Verified paid or free
             ]);
+
+            // Dispatch Full Paper Submitted Email
+            try {
+                \Illuminate\Support\Facades\Mail::to($reg->user->email)
+                    ->send(new \App\Mail\FullPaperSubmitted(
+                        $reg->user,
+                        $conf,
+                        $submission
+                    ));
+                Log::info("Sent Full Paper Submission Email to user {$reg->user->email} for Submission ID {$submission->id}");
+            } catch (\Exception $mailEx) {
+                Log::error("Failed to send Full Paper Submission email for Submission ID {$submission->id}: " . $mailEx->getMessage());
+            }
 
             Log::info("Full Paper Submitted for Submission ID {$submission->id} by User ID " . Auth::id());
             return back()->with('success', 'Your full paper has been successfully submitted! The moderation team is currently reviewing it.');

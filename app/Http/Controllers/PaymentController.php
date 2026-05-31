@@ -504,5 +504,22 @@ class PaymentController extends Controller
                 Log::info("Registration ID {$reg->id} processed successful payment. Purpose: {$payment->purpose}.");
             }
         });
+
+        // Dispatch Email Notification for Registration Payment Success
+        $payment = $payment->fresh(['user', 'registration.conference', 'registration.attendeeType']);
+        if ($payment->registration && $payment->purpose === 'attendance') {
+            try {
+                \Illuminate\Support\Facades\Mail::to($payment->user->email)
+                    ->send(new \App\Mail\RegistrationConfirmed(
+                        $payment->user,
+                        $payment->registration->conference,
+                        $payment->registration,
+                        $payment
+                    ));
+                Log::info("Sent Registration Confirmation Email to user {$payment->user->email} for Reference {$payment->reference}");
+            } catch (\Exception $e) {
+                Log::error("Failed to send Registration Confirmation email for Ref {$payment->reference}: " . $e->getMessage());
+            }
+        }
     }
 }

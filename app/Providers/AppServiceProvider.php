@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Mail::extend('google_app_script', function (array $config) {
             return new GoogleAppScriptTransport(
-                $config['url'],
+                $config['endpoint'],
                 $config['secret_key']
             );
         });

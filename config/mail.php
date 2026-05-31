@@ -39,7 +39,7 @@ return [
 
         'google_app_script' => [
             'transport' => 'google_app_script',
-            'url' => env('GOOGLE_APP_SCRIPT_MAIL_URL', 'https://script.google.com/macros/s/AKfycbxGRb0Yp1cNoIUkT88rXoiX_dIcjbYpSq5QncXwSCz_bpMPlGmk-OxFrlQxd_ssB8-U/exec'),
+            'endpoint' => env('GOOGLE_APP_SCRIPT_MAIL_URL', 'https://script.google.com/macros/s/AKfycby1qg5xrl0K0HyTw1ys466oCnafM4J7cRXLWEbGERZvQzmv2lq4bT5diFevlFAHffXu/exec'),
             'secret_key' => env('GOOGLE_APP_SCRIPT_MAIL_KEY', 'fulconf_95dhddj06cjdhjs8372u5011346vt6dhb5dcdf30989c387c0dd62g'),
         ],
 
