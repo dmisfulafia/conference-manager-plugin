@@ -14,10 +14,10 @@ class CredoService
 
     public function __construct()
     {
-        $this->apiUrl = env('CREDO_API_URL', 'https://api.credocentral.com');
-        $this->publicKey = env('CREDO_PUBLIC_KEY', '1PUB3580LYTFvv7aSCJMEBH3ESdaYKff75eFhr');
-        $this->secretKey = env('CREDO_SECRET_KEY', '1PRI3486heaq54W2yGYGBmWj0GMt1x6yndC0wj');
-        $this->paymentCode = env('CREDO_PAYMENT_CODE', '003486YST1X8');
+        $this->apiUrl = config('services.credo.api_url');
+        $this->publicKey = config('services.credo.public_key');
+        $this->secretKey = config('services.credo.secret_key');
+        $this->paymentCode = config('services.credo.payment_code');
     }
 
     /**

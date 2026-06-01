@@ -180,9 +180,9 @@ class PaymentController extends Controller
                         'payment_link' => $response['authorizationUrl'],
                         'email' => $user->email,
                         'amount' => (int) round($total * 100),
-                        'public_key' => env('CREDO_PUBLIC_KEY'),
+                        'public_key' => config('services.credo.public_key'),
                         'callback_url' => $callbackUrl,
-                        'service_code' => env('CREDO_PAYMENT_CODE'),
+                        'service_code' => config('services.credo.payment_code'),
                     ]);
                 }
 
@@ -367,9 +367,9 @@ class PaymentController extends Controller
                         'payment_link' => $response['authorizationUrl'],
                         'email' => $user->email,
                         'amount' => (int) round($total * 100),
-                        'public_key' => env('CREDO_PUBLIC_KEY'),
+                        'public_key' => config('services.credo.public_key'),
                         'callback_url' => $callbackUrl,
-                        'service_code' => env('CREDO_PAYMENT_CODE'),
+                        'service_code' => config('services.credo.payment_code'),
                     ]);
                 }
 
@@ -445,9 +445,9 @@ class PaymentController extends Controller
                         'payment_link' => $response['authorizationUrl'],
                         'email' => $user->email,
                         'amount' => (int) round($total * 100),
-                        'public_key' => env('CREDO_PUBLIC_KEY'),
+                        'public_key' => config('services.credo.public_key'),
                         'callback_url' => $callbackUrl,
-                        'service_code' => env('CREDO_PAYMENT_CODE'),
+                        'service_code' => config('services.credo.payment_code'),
                     ]);
                 }
         

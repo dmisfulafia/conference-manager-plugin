@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    'cloudinary' => [
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'depbwqh2i'),
+        'api_key' => env('CLOUDINARY_API_KEY', '481196651998552'),
+        'api_secret' => env('CLOUDINARY_API_SECRET', 'fcpUUvTNOKae3xJFY5sxEKc0OW0'),
+    ],
+
+    'credo' => [
+        'api_url' => env('CREDO_API_URL', 'https://api.credocentral.com'),
+        'public_key' => env('CREDO_PUBLIC_KEY', '1PUB3580LYTFvv7aSCJMEBH3ESdaYKff75eFhr'),
+        'secret_key' => env('CREDO_SECRET_KEY', '1PRI3486heaq54W2yGYGBmWj0GMt1x6yndC0wj'),
+        'payment_code' => env('CREDO_PAYMENT_CODE', '003486YST1X8'),
+    ],
+
 ];
