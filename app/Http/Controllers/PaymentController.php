@@ -197,7 +197,7 @@ class PaymentController extends Controller
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to initiate checkout transaction: ' . $e->getMessage()
+                    'message' => 'Unable to initiate checkout for this transaction: ' . $e->getMessage()
                 ], 500);
             }
             return back()->with('error', 'Unable to initiate checkout transaction. Please try again later.');
