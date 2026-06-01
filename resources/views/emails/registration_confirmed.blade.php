@@ -188,8 +188,7 @@
             <!-- Institutional Footer -->
             <div class="footer">
                 <p>This is an automated receipt generated securely by the <strong>Federal University of Lafia</strong>.</p>
-                <p>&copy; {{ date('Y') }} Federal University of Lafia. All rights reserved.<br>
-                Lafia-Akwanga Road, Lafia, Nasarawa State, Nigeria.</p>
+                <p>&copy; {{ date('Y') }} Federal University of Lafia. All rights reserved.</p>
             </div>
         </div>
     </div>
