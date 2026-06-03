@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             'occupation' => 'Professor of Computer Science',
             'institution' => 'Federal University of Lafia',
             'country' => 'Nigeria',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password@2026'),
             'role' => 'super_admin',
             'email_verified_at' => now(),
         ]);
@@ -44,44 +44,44 @@ class DatabaseSeeder extends Seeder
             'occupation' => 'Senior Lecturer',
             'institution' => 'Federal University of Lafia',
             'country' => 'Nigeria',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('passwor@2026'),
             'role' => 'admin',
             'email_verified_at' => now(),
         ]);
 
         // 3. Regular Professional Attendee User
-        User::create([
-            'title' => 'Mr.',
-            'first_name' => 'John',
-            'last_name' => 'Doe',
-            'other_names' => null,
-            'email' => 'user@example.com',
-            'phone' => '08123456789',
-            'gender' => 'Male',
-            'occupation' => 'Software Engineer',
-            'institution' => 'Google LLC',
-            'country' => 'United States',
-            'password' => bcrypt('password'),
-            'role' => 'user',
-            'email_verified_at' => now(),
-        ]);
+        // User::create([
+        //     'title' => 'Mr.',
+        //     'first_name' => 'John',
+        //     'last_name' => 'Doe',
+        //     'other_names' => null,
+        //     'email' => 'user@example.com',
+        //     'phone' => '08123456789',
+        //     'gender' => 'Male',
+        //     'occupation' => 'Software Engineer',
+        //     'institution' => 'Google LLC',
+        //     'country' => 'United States',
+        //     'password' => bcrypt('password'),
+        //     'role' => 'user',
+        //     'email_verified_at' => now(),
+        // ]);
 
         // 4. Student Attendee User
-        User::create([
-            'title' => 'Ms.',
-            'first_name' => 'Jane',
-            'last_name' => 'Smith',
-            'other_names' => null,
-            'email' => 'student@example.com',
-            'phone' => '09012345678',
-            'gender' => 'Female',
-            'occupation' => 'Undergraduate Student',
-            'institution' => 'Federal University of Lafia',
-            'country' => 'Nigeria',
-            'password' => bcrypt('password'),
-            'role' => 'user',
-            'email_verified_at' => now(),
-        ]);
+        // User::create([
+        //     'title' => 'Ms.',
+        //     'first_name' => 'Jane',
+        //     'last_name' => 'Smith',
+        //     'other_names' => null,
+        //     'email' => 'student@example.com',
+        //     'phone' => '09012345678',
+        //     'gender' => 'Female',
+        //     'occupation' => 'Undergraduate Student',
+        //     'institution' => 'Federal University of Lafia',
+        //     'country' => 'Nigeria',
+        //     'password' => bcrypt('password'),
+        //     'role' => 'user',
+        //     'email_verified_at' => now(),
+        // ]);
 
         // 5. 5th FULafia Annual International Conference (Ongoing)
         $ongoingConference = \App\Models\Conference::create([
